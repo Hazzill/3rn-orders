@@ -120,7 +120,12 @@ export default function OrderSupportPage() {
 
   return (
     <div className="mx-auto max-w-md space-y-4 pb-20">
-      <MobileHeader title="หน้าจัดซื้อ" userName={buyer.name} />
+      <MobileHeader 
+        title="หน้าจัดซื้อ" 
+        userName={buyer.lineDisplayName || buyer.name}
+        userAvatar={buyer.linePictureUrl}
+        userRole={buyer.role}
+      />
 
       <div className="flex rounded-lg border border-slate-300 bg-white p-1">
         <button

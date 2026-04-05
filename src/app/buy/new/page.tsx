@@ -92,7 +92,9 @@ export default function StoreInfoPage() {
     <div className="mx-auto max-w-md space-y-5 pb-12">
       <MobileHeader
         title="ข้อมูลร้านค้า"
-        userName={buyer.name}
+        userName={buyer.lineDisplayName || buyer.name}
+        userAvatar={buyer.linePictureUrl}
+        userRole={buyer.role}
         onBack={() => router.push("/buy")}
       />
 

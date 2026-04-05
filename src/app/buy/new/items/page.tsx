@@ -49,7 +49,12 @@ export default function AddItemsPage() {
 
   return (
     <div className="mx-auto max-w-md space-y-5 pb-12">
-      <MobileHeader title="รายการสินค้า" userName={buyer.name} />
+      <MobileHeader
+        title="รายการสินค้า"
+        userName={buyer.lineDisplayName || buyer.name}
+        userAvatar={buyer.linePictureUrl}
+        userRole={buyer.role}
+      />
 
       <div className="px-1">
         <div className="eyebrow mb-2">Step 2 of 3</div>

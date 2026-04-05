@@ -46,7 +46,13 @@ export default function PurchaseHistoryPage() {
 
   return (
     <div className="mx-auto max-w-md space-y-5 pb-24">
-      <MobileHeader title="ประวัติการสั่งซื้อ" userName={buyer.name} onBack={() => router.push("/buy")} />
+      <MobileHeader
+        title="ประวัติการสั่งซื้อ"
+        userName={buyer.lineDisplayName || buyer.name}
+        userAvatar={buyer.linePictureUrl}
+        userRole={buyer.role}
+        onBack={() => router.push("/buy")}
+      />
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />

@@ -105,11 +105,18 @@ export default function OrderSupportLoginPage() {
         );
       }
 
+      const linkedStaff = {
+        ...foundStaff,
+        lineUserId: lineUserId || foundStaff.lineUserId,
+        linePictureUrl: profile?.pictureUrl || foundStaff.linePictureUrl,
+        lineDisplayName: profile?.displayName || foundStaff.lineDisplayName,
+      };
+
       setLinkSuccess(true);
       setMode("line-linking");
 
       setTimeout(() => {
-        loginWithStaff(foundStaff);
+        loginWithStaff(linkedStaff);
         router.push("/order");
       }, 1500);
     } catch (err) {

@@ -58,7 +58,9 @@ export default function StoreListPage() {
     <div className="mx-auto max-w-md space-y-5 pb-12">
       <MobileHeader
         title="รายชื่อร้านค้า"
-        userName={buyer.name}
+        userName={buyer.lineDisplayName || buyer.name}
+        userAvatar={buyer.linePictureUrl}
+        userRole={buyer.role}
         onBack={() => router.push("/buy")}
       />
 
@@ -197,4 +199,3 @@ export default function StoreListPage() {
     </div>
   );
 }
-

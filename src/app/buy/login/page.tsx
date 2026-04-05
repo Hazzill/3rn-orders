@@ -108,12 +108,19 @@ export default function BuyerLoginPage() {
         );
       }
 
+      const linkedStaff = {
+        ...foundStaff,
+        lineUserId: lineUserId || foundStaff.lineUserId,
+        linePictureUrl: profile?.pictureUrl || foundStaff.linePictureUrl,
+        lineDisplayName: profile?.displayName || foundStaff.lineDisplayName,
+      };
+
       setLinkSuccess(true);
       setMode("line-linking");
 
       // Auto login after short delay
       setTimeout(() => {
-        loginWithStaff(foundStaff);
+        loginWithStaff(linkedStaff);
         router.push("/buy");
       }, 1500);
     } catch (err) {

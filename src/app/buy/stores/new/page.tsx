@@ -4,6 +4,7 @@ import { useState } from "react";
 import MobileHeader from "@/components/mobile/MobileNav";
 import { Button } from "@/components/ui/Button";
 import { Card, Input, Label } from "@/components/ui/FormElements";
+import { useBuyerAuth } from "@/context/BuyerContext";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -11,6 +12,7 @@ import { Store, MapPin, Phone, Tag, Loader2, Link2 } from "lucide-react";
 
 export default function CreateStorePage() {
   const router = useRouter();
+  const { buyer } = useBuyerAuth();
   const [loading, setLoading] = useState(false);
   const [store, setStore] = useState({
     name: "",
@@ -41,7 +43,12 @@ export default function CreateStorePage() {
 
   return (
     <div className="mx-auto max-w-md space-y-5 pb-12">
-      <MobileHeader title="เพิ่มร้านค้าใหม่" userName="ผู้ใช้งานระบบ" />
+      <MobileHeader
+        title="เพิ่มร้านค้าใหม่"
+        userName={buyer?.lineDisplayName || buyer?.name || "ผู้ใช้งานระบบ"}
+        userAvatar={buyer?.linePictureUrl}
+        userRole={buyer?.role || "ผู้ใช้งานระบบ"}
+      />
 
       <div className="px-1">
         <div className="eyebrow mb-2">Store Directory</div>

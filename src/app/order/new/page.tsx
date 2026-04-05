@@ -107,7 +107,12 @@ export default function NewOrderPage() {
 
   return (
     <div className="pb-28">
-      <MobileHeader title="สร้างคำขอซื้อใหม่" />
+      <MobileHeader
+        title="สร้างคำขอซื้อใหม่"
+        userName={profile?.displayName || "ผู้ใช้งานระบบ"}
+        userAvatar={profile?.pictureUrl}
+        userRole="ผู้สั่งซื้อ"
+      />
 
       <div className="mx-auto max-w-md space-y-4">
         <div className="grid grid-cols-3 gap-2.5">

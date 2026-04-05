@@ -110,7 +110,12 @@ export default function SummaryPage() {
 
   return (
     <div className="mx-auto max-w-md space-y-5 pb-12">
-      <MobileHeader title="ยืนยันคำขอซื้อ" userName={buyer.name} />
+      <MobileHeader
+        title="ยืนยันคำขอซื้อ"
+        userName={buyer.lineDisplayName || buyer.name}
+        userAvatar={buyer.linePictureUrl}
+        userRole={buyer.role}
+      />
 
       <div className="px-1">
         <div className="eyebrow mb-2">Step 3 of 3</div>

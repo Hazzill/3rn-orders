@@ -38,7 +38,12 @@ export default function BuyerDashboard() {
 
   return (
     <div className="mx-auto max-w-md space-y-6 pb-12">
-      <MobileHeader title="หน้าผู้สั่งซื้อ" userName={buyer.name} />
+      <MobileHeader 
+        title="หน้าผู้สั่งซื้อ" 
+        userName={buyer.lineDisplayName || buyer.name}
+        userAvatar={buyer.linePictureUrl}
+        userRole={buyer.role}
+      />
 
       <div className="grid grid-cols-2 gap-3">
         <Link href="/buy/new">
@@ -46,9 +51,9 @@ export default function BuyerDashboard() {
             <div className="flex h-10 w-10 items-center justify-center rounded-md border border-black/10 bg-white/50">
               <ShoppingCart className="h-5 w-5" />
             </div>
-            <div>
-              <div className="text-sm font-semibold">สร้างคำขอซื้อ</div>
-              <div className="text-xs text-slate-700">เริ่มออร์เดอร์ใหม่</div>
+                <div>
+              <div className="text-md font-semibold leading-5">สร้างคำขอซื้อ</div>
+              <div className="text-[13px] leading-5 text-slate-700">เริ่มออร์เดอร์ใหม่</div>
             </div>
           </button>
         </Link>
@@ -59,8 +64,8 @@ export default function BuyerDashboard() {
               <Store className="h-5 w-5 text-slate-500" />
             </div>
             <div>
-              <div className="text-sm font-semibold">ร้านค้า</div>
-              <div className="text-xs text-slate-500">รายชื่อคู่ค้า</div>
+              <div className="text-md font-semibold leading-5">ร้านค้า</div>
+              <div className="text-[13px] leading-5 text-slate-500">รายชื่อคู่ค้า</div>
             </div>
           </button>
         </Link>
@@ -70,11 +75,11 @@ export default function BuyerDashboard() {
         <div className="flex items-end justify-between px-1">
           <div>
             <div className="eyebrow mb-2">Recent Orders</div>
-            <h2 className="text-2xl font-semibold tracking-[-0.03em] text-slate-900">
+            <h2 className="text-xl font-semibold leading-tight tracking-[-0.03em] text-slate-900">
               รายการล่าสุดของคุณ
             </h2>
           </div>
-          <Link href="/buy/history" className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+          <Link href="/buy/history" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
             ดูทั้งหมด
           </Link>
         </div>
@@ -104,10 +109,10 @@ export default function BuyerDashboard() {
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <div className="text-base font-semibold tracking-[-0.02em] text-slate-900">
+                      <div className="text-md font-semibold tracking-[-0.02em] text-slate-900">
                         {order.storeName || "ไม่ระบุร้านค้า"}
                       </div>
-                      <div className="mt-1 text-sm text-slate-500">
+                      <div className="mt-1 text-sm leading-6 text-slate-500">
                         {firstItem
                           ? `${firstItem.name}${itemCount > 1 ? ` และอีก ${itemCount - 1} รายการ` : ""}`
                           : "ไม่มีรายการสินค้า"}

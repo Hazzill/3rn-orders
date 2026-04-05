@@ -52,6 +52,10 @@ export function BuyerProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setBuyer(null);
     localStorage.removeItem("powertech_buyer");
+    if (pathname.startsWith("/order")) {
+      router.push("/order/login");
+      return;
+    }
     router.push("/buy/login");
   };
 
