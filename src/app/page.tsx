@@ -11,7 +11,7 @@ import { useBuyerAuth } from "@/context/BuyerContext";
 
 export default function Home() {
   const { profile, isLoggedIn, loading: liffLoading, login: liffLogin } = useLiff();
-  const { buyer, loading: authLoading, logout, login } = useBuyerAuth();
+  const { buyer, loading: authLoading, logout, login, loginWithStaff } = useBuyerAuth();
   const { staff, loading: staffLoading } = useStaff();
   const router = useRouter();
 
@@ -26,21 +26,30 @@ export default function Home() {
   }, [profile, staff, buyer]);
 
   useEffect(() => {
-    if (!liffLoading && !staffLoading && !authLoading && currentUser) {
+    // If not loaded yet, do nothing
+    if (liffLoading || staffLoading || authLoading) return;
+
+    if (currentUser) {
+      // Very Important: If we found currentUser via LINE but BuyerContext doesn't know them yet,
+      // we must log them in globally so the route guard doesn't kick them out!
+      if (!buyer) {
+        loginWithStaff(currentUser);
+      }
+
       const role = currentUser.role?.toLowerCase().trim() || "";
       const isAdmin = role === "admin" || role === "แอดมิน" || role === "administrator";
       const isBuyer = role === "buyer" || role === "staff" || role === "พนักงานจัดซื้อ" || role === "จัดซื้อ" || role === "order";
       const isOrderer = role === "orderer" || role === "user" || role === "ผู้ซื้อ" || role === "ผู้สั่งซื้อ" || role === "buy";
 
-      if (isBuyer) {
+      if (isAdmin) {
+        router.replace("/admin");
+      } else if (isBuyer) {
         router.replace("/order");
       } else if (isOrderer) {
         router.replace("/buy");
-      } else if (isAdmin) {
-        router.replace("/admin");
       }
     }
-  }, [liffLoading, staffLoading, authLoading, currentUser, router]);
+  }, [liffLoading, staffLoading, authLoading, currentUser, buyer, loginWithStaff, router]);
 
   const allRoles = [
     {
