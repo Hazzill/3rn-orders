@@ -44,7 +44,9 @@ export function LiffProvider({ children, liffId }: { children: React.ReactNode, 
 
   const login = () => liff?.login();
   const logout = () => {
-    liff?.logout();
+    if (liff && liff.isLoggedIn()) {
+      liff.logout();
+    }
     setProfile(null);
   };
 

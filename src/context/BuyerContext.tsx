@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { StaffMember } from "@/hooks/useStaff";
 import { useRouter, usePathname } from "next/navigation";
+import { useLiff } from "@/lib/liff";
 
 interface BuyerContextType {
   buyer: StaffMember | null;
@@ -24,6 +25,7 @@ export function BuyerProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const { logout: liffLogout } = useLiff();
 
   useEffect(() => {
     const savedBuyer = localStorage.getItem("powertech_buyer");
@@ -52,6 +54,7 @@ export function BuyerProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setBuyer(null);
     localStorage.removeItem("powertech_buyer");
+    liffLogout();
     router.push("/");
   };
 
