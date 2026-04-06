@@ -34,10 +34,9 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         to: groupId,
         messages: [
-          {
-            type: "text",
-            text: message,
-          },
+          typeof message === "string" 
+            ? { type: "text", text: message } 
+            : message
         ],
       }),
     });

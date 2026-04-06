@@ -1,107 +1,86 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
-import { Button, cn } from "@/components/ui/Button";
-import { Card } from "@/components/ui/FormElements";
-import { useOrders } from "@/hooks/useOrders";
+import { Activity, Clock, Loader2, ShoppingCart } from "lucide-react";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
+import { useOrders } from "@/hooks/useOrders";
+import {
+  AdminEmptyState,
+  AdminHeader,
+  AdminPage,
+  AdminPanel,
+  AdminSecondaryButton,
+  AdminStatCard,
+  AdminStatGrid,
+  AdminStatusChip,
+} from "@/components/admin/AdminUI";
+
+const statusMap = {
+  pending: { label: "รอดำเนินการ", tone: "amber" as const },
+  buying: { label: "กำลังจัดซื้อ", tone: "blue" as const },
+  completed: { label: "เสร็จสิ้น", tone: "emerald" as const },
+  cancelled: { label: "ยกเลิก", tone: "red" as const },
+  sorting: { label: "ตรวจสอบ", tone: "slate" as const },
+};
 
 export default function AdminDashboard() {
   const { orders, loading } = useOrders();
 
-  const getStats = () => {
-    const pending = orders.filter((o) => o.status === "pending").length;
-    const buying = orders.filter((o) => o.status === "buying").length;
-    const completed = orders.filter((o) => o.status === "completed").length;
-    const cancelled = orders.filter((o) => o.status === "cancelled").length;
-
-    return [
-      {
-        label: "รอดำเนินการ",
-        value: pending,
-        color: "text-amber-700",
-        bg: "bg-amber-50",
-      },
-      {
-        label: "กำลังจัดซื้อ",
-        value: buying,
-        color: "text-blue-700",
-        bg: "bg-blue-50",
-      },
-      {
-        label: "เสร็จสิ้นวันนี้",
-        value: completed,
-        color: "text-emerald-700",
-        bg: "bg-emerald-50",
-      },
-      {
-        label: "ยกเลิก",
-        value: cancelled,
-        color: "text-red-700",
-        bg: "bg-red-50",
-      },
-    ];
-  };
-
-  const stats = getStats();
-
   return (
-    <div className="w-full space-y-8">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card
-            key={stat.label}
-            className="flex flex-col gap-5 border-slate-300 bg-white p-6"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-600">
-                {stat.label}
-              </span>
-              <div
-                className={cn(
-                  "rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.08em]",
-                  stat.bg,
-                  stat.color,
-                )}
-              >
-                +12%
-              </div>
-            </div>
-            <span
-              className={cn(
-                "text-4xl font-semibold leading-none tracking-[-0.05em]",
-                stat.color,
-              )}
-            >
-              {stat.value}
-            </span>
-          </Card>
-        ))}
-      </div>
+    <AdminPage>
+      <AdminHeader
+        title="ภาพรวมระบบ"
+        subtitle="สรุปสถานะงานจัดซื้อและรายการล่าสุดของวันนี้"
+      />
 
-      <Card className="overflow-hidden border-slate-300 bg-white p-0">
-        <div className="panel-header">
-          <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-900">
-            รายการสั่งซื้อล่าสุด
-          </h3>
-          <Button
-            size="sm"
-            variant="secondary"
-            className="px-4 text-xs uppercase tracking-[0.08em]"
-          >
+      <AdminStatGrid>
+        <AdminStatCard
+          label="รอดำเนินการ"
+          value={orders.filter((order) => order.status === "pending").length}
+          detail="คำขอที่ยังไม่เริ่มดำเนินการ"
+          icon={Clock}
+          tone="amber"
+        />
+        <AdminStatCard
+          label="กำลังจัดซื้อ"
+          value={orders.filter((order) => order.status === "buying").length}
+          detail="รายการที่อยู่ระหว่างติดตาม"
+          icon={ShoppingCart}
+          tone="blue"
+        />
+        <AdminStatCard
+          label="เสร็จสิ้น"
+          value={orders.filter((order) => order.status === "completed").length}
+          detail="รายการที่ปิดงานแล้ว"
+          icon={Activity}
+          tone="emerald"
+        />
+        <AdminStatCard
+          label="ยกเลิก"
+          value={orders.filter((order) => order.status === "cancelled").length}
+          detail="รายการที่ถูกยกเลิก"
+          icon={Activity}
+          tone="red"
+        />
+      </AdminStatGrid>
+
+      <AdminPanel
+        title="รายการล่าสุด"
+        subtitle="แสดง 10 รายการล่าสุดจากระบบ"
+        action={
+          <AdminSecondaryButton onClick={() => (window.location.href = "/admin/orders")}>
             ดูทั้งหมด
-          </Button>
-        </div>
-
+          </AdminSecondaryButton>
+        }
+      >
         <div className="overflow-x-auto">
-          <table className="app-table text-left">
+          <table className="admin-table">
             <thead>
               <tr>
                 <th>รหัส</th>
-                <th>ผู้สั่ง</th>
+                <th>ผู้ขอซื้อ</th>
                 <th>ร้านค้า</th>
-                <th>รายการ</th>
+                <th>รายละเอียด</th>
                 <th>สถานะ</th>
                 <th className="text-right">เวลา</th>
               </tr>
@@ -109,68 +88,70 @@ export default function AdminDashboard() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-20 text-center">
-                    <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+                  <td colSpan={6} className="px-6 py-16">
+                    <div className="flex flex-col items-center justify-center gap-3 text-slate-500">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                      <span className="text-sm">กำลังโหลดข้อมูล</span>
+                    </div>
                   </td>
                 </tr>
               ) : orders.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-20 text-center font-semibold text-slate-600"
-                  >
-                    ไม่พบรายการสั่งซื้อ
+                  <td colSpan={6} className="p-0">
+                    <AdminEmptyState
+                      icon={ShoppingCart}
+                      title="ยังไม่มีรายการสั่งซื้อ"
+                      description="เมื่อมีการสร้างออร์เดอร์ใหม่ รายการล่าสุดจะแสดงที่หน้านี้"
+                    />
                   </td>
                 </tr>
               ) : (
-                orders.slice(0, 5).map((order) => (
-                  <tr
-                    key={order.id}
-                    className="font-medium transition-colors hover:bg-slate-50"
-                  >
-                    <td className="font-semibold text-slate-900">
-                      #{order.id.slice(-6).toUpperCase()}
-                    </td>
-                    <td className="text-slate-600">{order.requesterName}</td>
-                    <td className="font-semibold uppercase text-slate-900">
-                      {order.storeName || "-"}
-                    </td>
-                    <td className="text-slate-500">
-                      {order.items.length} รายการ ({order.items[0]?.name}
-                      {order.items.length > 1 ? "..." : ""})
-                    </td>
-                    <td>
-                      <span
-                        className={cn(
-                          "status-chip",
-                          order.status === "buying"
-                            ? "border-blue-200 bg-blue-50 text-blue-700"
-                            : order.status === "pending"
-                              ? "border-amber-200 bg-amber-50 text-amber-700"
-                              : "border-emerald-200 bg-emerald-50 text-emerald-700",
-                        )}
-                      >
-                        {order.status === "buying"
-                          ? "กำลังซื้อ"
-                          : order.status === "pending"
-                            ? "รอรับเรื่อง"
-                            : "เสร็จสิ้น"}
-                      </span>
-                    </td>
-                    <td className="text-right text-slate-600">
-                      {order.createdAt
-                        ? format(order.createdAt.toDate(), "HH:mm 'น.'", {
-                            locale: th,
-                          })
-                        : "-"}
-                    </td>
-                  </tr>
-                ))
+                orders.slice(0, 10).map((order) => {
+                  const status = statusMap[order.status as keyof typeof statusMap] ?? statusMap.pending;
+
+                  return (
+                    <tr key={order.id} className="hover:bg-slate-50">
+                      <td>
+                        <span className="font-mono text-sm text-slate-700">
+                          #{order.id.slice(-6).toUpperCase()}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="space-y-1">
+                          <div className="font-medium text-slate-900">{order.requesterName}</div>
+                          <div className="text-xs text-slate-500">ผู้ขอซื้อ</div>
+                        </div>
+                      </td>
+                      <td className="text-slate-700">{order.storeName || "-"}</td>
+                      <td>
+                        <div className="space-y-1">
+                          <div className="text-sm text-slate-700">{order.items.length} รายการ</div>
+                          <div className="max-w-[240px] truncate text-xs text-slate-500">
+                            {order.items.map((item) => item.name).join(", ")}
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <AdminStatusChip label={status.label} tone={status.tone} />
+                      </td>
+                      <td className="text-right">
+                        <div className="space-y-1">
+                          <div className="text-sm text-slate-900">
+                            {order.createdAt ? format(order.createdAt.toDate(), "HH:mm", { locale: th }) : "-"}
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            {order.createdAt ? format(order.createdAt.toDate(), "dd MMM yy", { locale: th }) : "-"}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
-      </Card>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   );
 }

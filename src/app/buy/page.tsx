@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useBuyerAuth } from "@/context/BuyerContext";
 import MobileHeader from "@/components/mobile/MobileNav";
-import { Button, cn } from "@/components/ui/Button";
-import { Card } from "@/components/ui/FormElements";
+import { cn } from "@/components/ui/Button";
 import {
   ShoppingCart,
   Store,
@@ -13,13 +12,16 @@ import {
   CheckCircle2,
   Clock,
   XCircle,
-  FileText,
   ChevronRight,
+  Edit,
+  Save,
+  Trash2,
+  Plus,
 } from "lucide-react";
 import Link from "next/link";
 import { useOrders } from "@/hooks/useOrders";
 import { Modal } from "@/components/ui/Modal";
-import { Order } from "@/types";
+import { Order, Item } from "@/types";
 
 const STATUS_MAP = {
   pending: { label: "รอยืนยัน", color: "border-amber-200 bg-amber-50 text-amber-700" },
@@ -31,68 +33,153 @@ const STATUS_MAP = {
 
 export default function BuyerDashboard() {
   const { buyer } = useBuyerAuth();
-  const { orders, loading } = useOrders("orderer", buyer?.id);
+  const { orders, loading, updateOrder } = useOrders("orderer", buyer?.id, 10);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedOrder, setEditedOrder] = useState<Order | null>(null);
 
+  useEffect(() => {
+    if (selectedOrder) {
+      setEditedOrder({ ...selectedOrder });
+    } else {
+      setIsEditing(false);
+    }
+  }, [selectedOrder]);
+
+  const saveEdit = async () => {
+    if (!selectedOrder || !editedOrder) return;
+    try {
+      await updateOrder(selectedOrder.id, {
+        storeName: editedOrder.storeName,
+        items: editedOrder.items,
+        location: editedOrder.location,
+        contact: editedOrder.contact,
+        note: editedOrder.note
+      });
+      setSelectedOrder({ ...editedOrder });
+      setIsEditing(false);
+    } catch (err) {
+      console.error(err);
+      alert("ไม่สามารถบันทึกได้");
+    }
+  };
+
+  const addEditItem = () => {
+    if (!editedOrder) return;
+    const newItem: Item = {
+      id: `item_${Date.now()}`,
+      name: "",
+      qty: 1,
+      unit: "ชิ้น",
+      status: "to_buy"
+    };
+    setEditedOrder({
+      ...editedOrder,
+      items: [...editedOrder.items, newItem]
+    });
+  };
+
+  const removeEditItem = (idx: number) => {
+    if (!editedOrder) return;
+    const newItems = [...editedOrder.items];
+    newItems.splice(idx, 1);
+    setEditedOrder({ ...editedOrder, items: newItems });
+  };
+
+  const updateEditItem = (idx: number, field: keyof Item, value: any) => {
+    if (!editedOrder) return;
+    const newItems = [...editedOrder.items];
+    newItems[idx] = { ...newItems[idx], [field]: value };
+    setEditedOrder({ ...editedOrder, items: newItems });
+  };
+
+  const pendingOrders = orders.filter((o) => o.status === "pending" || o.status === "buying");
+  const completedOrders = orders.filter((o) => o.status === "completed" || o.status === "sorting");
+
+  const formatDateTime = (timestamp: any) => {
+    if (!timestamp) return "-";
+    try {
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return new Intl.DateTimeFormat("th-TH", {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(date);
+    } catch (e) {
+      return "-";
+    }
+  };
   if (!buyer) return null;
 
   return (
-    <div className="mx-auto max-w-md space-y-6 pb-12">
+    <div className="buy-ui mx-auto max-w-md space-y-2.5 pb-20">
       <MobileHeader 
-        title="หน้าผู้สั่งซื้อ" 
+        title="ระบบจัดการคำสั่งซื้อ" 
         userName={buyer.lineDisplayName || buyer.name}
         userAvatar={buyer.linePictureUrl}
         userRole={buyer.role}
       />
 
-      <div className="grid grid-cols-2 gap-3">
-        <Link href="/buy/new">
-          <button className="flex w-full items-center gap-3 rounded-lg border border-primary bg-primary px-4 py-4 text-left text-slate-950">
-            <div className="flex h-10 w-10 items-center justify-center rounded-md border border-black/10 bg-white/50">
-              <ShoppingCart className="h-5 w-5" />
+      {/* Statistics Row */}
+      <div className="grid grid-cols-3 gap-2 px-1">
+        <div className="rounded-lg border border-blue-100 bg-blue-50/50 py-1.5 px-3">
+          <div className="text-[10px] uppercase tracking-widest text-blue-600 font-bold">ทั้งหมด</div>
+          <div className="text-xl font-bold text-blue-900">{orders.length}</div>
+        </div>
+        <div className="rounded-lg border border-amber-100 bg-amber-50/50 py-1.5 px-3">
+          <div className="text-[10px] uppercase tracking-widest text-amber-600 font-bold">รอซื้อ</div>
+          <div className="text-xl font-bold text-amber-900">{pendingOrders.length}</div>
+        </div>
+        <div className="rounded-lg border border-emerald-100 bg-emerald-50/50 py-1.5 px-3">
+          <div className="text-[10px] uppercase tracking-widest text-emerald-600 font-bold">เสร็จสิ้น</div>
+          <div className="text-xl font-bold text-emerald-900">{completedOrders.length}</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <Link href="/buy/new" className="block">
+          <button className="flex w-full items-center gap-2.5 rounded-xl bg-primary py-2.5 px-4 shadow-lg shadow-primary/10">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-950/10">
+              <ShoppingCart className="h-4.5 w-4.5 text-slate-950" />
             </div>
-                <div>
-              <div className="text-md font-semibold leading-5">สร้างคำขอซื้อ</div>
-              <div className="text-[13px] leading-5 text-slate-700">เริ่มออร์เดอร์ใหม่</div>
+            <div className="text-left">
+              <div className="text-sm font-bold text-slate-950 leading-tight">สร้างคำขอซื้อ</div>
+              <div className="text-[10px] text-slate-950/60 uppercase font-semibold tracking-tight">เพิ่มออร์เดอร์ใหม่</div>
             </div>
           </button>
         </Link>
 
-        <Link href="/buy/stores">
-          <button className="flex w-full items-center gap-3 rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-slate-900">
-            <div className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 bg-slate-50">
-              <Store className="h-5 w-5 text-slate-500" />
+        <Link href="/buy/stores" className="block">
+          <button className="flex w-full items-center gap-2.5 rounded-xl border-2 border-slate-100 bg-white py-2.5 px-4 shadow-sm">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50">
+              <Store className="h-4.5 w-4.5 text-slate-400" />
             </div>
-            <div>
-              <div className="text-md font-semibold leading-5">ร้านค้า</div>
-              <div className="text-[13px] leading-5 text-slate-500">รายชื่อคู่ค้า</div>
+            <div className="text-left">
+              <div className="text-sm font-bold text-slate-950 leading-tight font-sans">ร้านค้า</div>
+              <div className="text-[10px] text-slate-500 uppercase font-semibold tracking-widest">รายชื่อคู่ค้า</div>
             </div>
           </button>
         </Link>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-end justify-between px-1">
-          <div>
-            <div className="eyebrow mb-2">Recent Orders</div>
-            <h2 className="text-xl font-semibold leading-tight tracking-[-0.03em] text-slate-900">
-              รายการล่าสุดของคุณ
-            </h2>
-          </div>
-          <Link href="/buy/history" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+      <div className="space-y-2">
+        <div className="flex items-center justify-between px-1.5 pt-1.5">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-600 leading-none">รายการล่าสุด • RECENT ORDERS</h2>
+          <Link href="/buy/history" className="text-[10px] font-bold text-slate-950 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-widest">
             ดูทั้งหมด
           </Link>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-500">
-              <Loader2 className="h-8 w-8 animate-spin" />
+            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+              <Loader2 className="h-7 w-7 animate-spin text-slate-300" />
             </div>
           ) : orders.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
-              <Package className="mx-auto mb-4 h-10 w-10 text-slate-300" />
-              <p className="text-sm font-medium text-slate-500">ยังไม่มีประวัติการสั่งซื้อ</p>
+            <div className="rounded-xl border-2 border-dashed border-slate-100 bg-white/50 py-16 text-center">
+              <Package className="mx-auto mb-3 h-10 w-10 text-slate-200" />
+              <p className="text-[13px] font-bold text-slate-500 uppercase tracking-widest">ยังไม่มีประวัติการสั่งซื้อ</p>
             </div>
           ) : (
             orders.slice(0, 10).map((order) => {
@@ -101,29 +188,74 @@ export default function BuyerDashboard() {
               const firstItem = order.items?.[0];
               const itemCount = order.items?.length || 0;
 
+              const accentColor = 
+                  order.status === "completed" ? "border-l-emerald-500" :
+                  order.status === "cancelled" ? "border-l-red-500" :
+                  order.status === "buying" ? "border-l-blue-500" :
+                  order.status === "sorting" ? "border-l-violet-500" : "border-l-amber-500";
+
               return (
-                <Card
+                <div
                   key={order.id}
                   onClick={() => setSelectedOrder(order)}
-                  className="cursor-pointer border-slate-300 bg-white p-4 transition-colors hover:border-slate-900"
+                  className={cn(
+                    "relative cursor-pointer rounded-lg border border-slate-200 border-l-4 bg-white p-3 shadow-sm",
+                    accentColor
+                  )}
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="text-md font-semibold tracking-[-0.02em] text-slate-900">
+                  <div className="flex items-start justify-between gap-1">
+                    <div className="mb-2">
+                      <div className="text-base font-bold text-slate-900 truncate leading-tight mb-0.5">
                         {order.storeName || "ไม่ระบุร้านค้า"}
                       </div>
-                      <div className="mt-1 text-sm leading-6 text-slate-500">
-                        {firstItem
-                          ? `${firstItem.name}${itemCount > 1 ? ` และอีก ${itemCount - 1} รายการ` : ""}`
-                          : "ไม่มีรายการสินค้า"}
+                      <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-tight">
+                        <Clock className="h-3 w-3 text-slate-400" />
+                        <span>{formatDateTime(order.createdAt)}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className={cn("status-chip", status.color)}>{status.label}</span>
-                      <ChevronRight className="h-4 w-4 text-slate-400" />
+                    <div className="flex flex-col items-end gap-1.5">
+                      <span className={cn(
+                          "px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tight",
+                          status.color.replace('border-', '')
+                      )}>
+                        {status.label}
+                      </span>
                     </div>
                   </div>
-                </Card>
+
+                  <div className="mt-2.5 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                     <div className="min-w-0 flex-1">
+                        <span className="text-sm text-slate-950 font-bold block truncate leading-tight uppercase tracking-tight">
+                          {firstItem
+                            ? `${firstItem.name}${itemCount > 1 ? ` และอีก ${itemCount - 1} รายการ` : ""}`
+                            : "ไม่มีรายการสินค้า"}
+                        </span>
+                        {(order.status === "completed" || order.status === "sorting") && (
+                          <div className="mt-1.5 flex items-center gap-2">
+                             {(() => {
+                               const bought = order.items?.filter(i => i.status === "bought").length || 0;
+                               const missing = order.items?.filter(i => i.status === "out_of_stock" || i.status === "cancelled").length || 0;
+                               
+                               if (missing === 0 && bought > 0) {
+                                 return <span className="text-[10px] font-black text-emerald-700 bg-emerald-100/50 px-2 py-0.5 rounded-sm uppercase tracking-tighter">ซื้อครบทุกรายการ</span>;
+                               }
+                               if (bought > 0 || missing > 0) {
+                                 return (
+                                   <div className="flex items-center gap-1">
+                                      <span className="text-[10px] font-black text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md uppercase tracking-widest">
+                                        ได้ {bought} / ขาด {missing}
+                                      </span>
+                                   </div>
+                                 );
+                               }
+                               return null;
+                             })()}
+                          </div>
+                        )}
+                     </div>
+                     <ChevronRight className="h-4 w-4 text-slate-300 shrink-0 ml-2" />
+                  </div>
+                </div>
               );
             })
           )}
@@ -136,76 +268,194 @@ export default function BuyerDashboard() {
         title={selectedOrder?.storeName || "รายละเอียดออร์เดอร์"}
       >
         {selectedOrder && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-              <div>
-                <div className="eyebrow mb-2">Order Status</div>
-                <span
-                  className={cn(
-                    "status-chip",
-                    (STATUS_MAP[selectedOrder.status as keyof typeof STATUS_MAP] || STATUS_MAP.pending).color,
-                  )}
-                >
-                  {(STATUS_MAP[selectedOrder.status as keyof typeof STATUS_MAP] || STATUS_MAP.pending).label}
-                </span>
-              </div>
-              <div className="text-right">
-                <div className="eyebrow mb-2">Items</div>
-                <div className="text-sm font-semibold text-slate-900">
-                  {selectedOrder.items.length} รายการ
-                </div>
-              </div>
+          <div className="space-y-5">
+            <div className="flex justify-end mb-1">
+              {selectedOrder.status !== "completed" && selectedOrder.status !== "cancelled" && (
+                !isEditing ? (
+                  <button 
+                    onClick={() => setIsEditing(true)}
+                    className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-800 transition-colors"
+                  >
+                    <Edit className="h-3.5 w-3.5" />
+                    แก้ไขข้อมูล
+                  </button>
+                ) : (
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditedOrder({ ...selectedOrder });
+                      }}
+                      className="text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600"
+                    >
+                      ยกเลิก
+                    </button>
+                    <button 
+                      onClick={saveEdit}
+                      className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-emerald-700"
+                    >
+                      <Save className="h-3.5 w-3.5" />
+                      บันทึก
+                    </button>
+                  </div>
+                )
+              )}
             </div>
 
-            <div className="space-y-2">
-              {selectedOrder.items.map((item, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
-                >
-                  <div>
-                    <div className="text-sm font-semibold text-slate-900">{item.name}</div>
-                    <div className="text-xs uppercase tracking-[0.12em] text-slate-500">
-                      {item.qty} {item.unit}
-                    </div>
+            {isEditing && editedOrder ? (
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-1 duration-200 focus-within:ring-0">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">ชื่อร้านค้า</label>
+                    <input 
+                      className="w-full h-10 px-3 rounded-lg border-2 border-slate-100 bg-slate-50/50 text-sm font-bold text-slate-950 outline-none"
+                      value={editedOrder.storeName}
+                      onChange={(e) => setEditedOrder({ ...editedOrder, storeName: e.target.value })}
+                    />
                   </div>
-                  <div>
-                    {item.status === "bought" ? (
-                      <div className="flex items-center gap-1.5 text-emerald-700">
-                        <CheckCircle2 className="h-4 w-4" />
-                        <span className="text-xs font-semibold uppercase tracking-[0.12em]">เรียบร้อย</span>
-                      </div>
-                    ) : item.status === "cancelled" || item.status === "out_of_stock" ? (
-                      <div className="flex items-center gap-1.5 text-red-700">
-                        <XCircle className="h-4 w-4" />
-                        <span className="text-xs font-semibold uppercase tracking-[0.12em]">ไม่มี</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 text-amber-700">
-                        <Clock className="h-4 w-4" />
-                        <span className="text-xs font-semibold uppercase tracking-[0.12em]">รอซื้อ</span>
-                      </div>
-                    )}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">สถานที่</label>
+                    <input 
+                      className="w-full h-10 px-3 rounded-lg border-2 border-slate-100 bg-slate-50/50 text-sm font-bold text-slate-950 outline-none"
+                      value={editedOrder.location}
+                      onChange={(e) => setEditedOrder({ ...editedOrder, location: e.target.value })}
+                    />
                   </div>
                 </div>
-              ))}
-            </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">รายการสินค้า</label>
+                    <button 
+                      onClick={addEditItem}
+                      className="flex items-center gap-1 text-[10px] font-black uppercase text-blue-600 hover:bg-blue-50 px-2 py-1 rounded"
+                    >
+                      <Plus className="h-3 w-3" />
+                      เพิ่มสินค้า
+                    </button>
+                  </div>
+                  <div className="max-h-[300px] overflow-y-auto pr-1 space-y-2">
+                    {editedOrder.items.map((item, idx) => (
+                      <div key={item.id || idx} className="p-3 rounded-xl border-2 border-slate-50 bg-white space-y-2">
+                        <div className="flex gap-1.5">
+                          <input 
+                            placeholder="ชื่อสินค้า"
+                            className="flex-1 h-10 px-3 rounded-lg border-2 border-slate-100 bg-slate-50 text-sm font-bold text-slate-950 outline-none"
+                            value={item.name}
+                            onChange={(e) => updateEditItem(idx, 'name', e.target.value)}
+                          />
+                          <button 
+                            onClick={() => removeEditItem(idx)}
+                            className="h-10 w-10 flex items-center justify-center text-red-600 bg-red-50 border-2 border-transparent"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <input 
+                            type="number"
+                            placeholder="จำนวน"
+                            className="h-10 px-3 rounded-lg border-2 border-slate-100 bg-slate-50 text-sm font-bold text-slate-950 outline-none"
+                            value={item.qty}
+                            onChange={(e) => updateEditItem(idx, 'qty', Number(e.target.value))}
+                          />
+                          <input 
+                            placeholder="หน่วย"
+                            className="h-10 px-3 rounded-lg border-2 border-slate-100 bg-slate-50 text-sm font-bold text-slate-950 outline-none"
+                            value={item.unit}
+                            onChange={(e) => updateEditItem(idx, 'unit', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="text-[10px] text-slate-500 block mb-1 font-black uppercase tracking-widest leading-none">สถานะออร์เดอร์</span>
+                      <span className={cn(
+                        "inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tight mb-1",
+                        (STATUS_MAP[selectedOrder.status as keyof typeof STATUS_MAP] || STATUS_MAP.pending).color.replace('border-', ''),
+                      )}>
+                        {(STATUS_MAP[selectedOrder.status as keyof typeof STATUS_MAP] || STATUS_MAP.pending).label}
+                      </span>
+                  </div>
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="text-[10px] text-slate-500 block mb-1 font-black uppercase tracking-widest leading-none">วันที่สั่งซื้อ</span>
+                      <span className="text-[11px] font-bold text-slate-900">{formatDateTime(selectedOrder.createdAt)}</span>
+                  </div>
+                </div>
+
+                <div className="divide-y divide-slate-100 border-t border-b border-slate-100">
+                  {selectedOrder.items.map((item, i) => {
+                    const isUnavailable = item.status === "cancelled" || item.status === "out_of_stock";
+                    
+                    return (
+                      <div
+                        key={i}
+                        className={cn(
+                          "flex items-center justify-between py-3.5 px-0.5 transition-all"
+                        )}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className={cn(
+                            "text-[14px] font-bold text-slate-900 truncate leading-tight mb-0.5",
+                            isUnavailable && "line-through text-slate-400 opacity-50"
+                          )}>
+                            {item.name}
+                          </div>
+                          <div className={cn(
+                            "text-[11px] font-bold bg-slate-50 inline-block px-1.5 py-0.5 rounded border border-slate-100 transition-colors",
+                            isUnavailable ? "text-slate-400 opacity-50" : "text-slate-600"
+                          )}>
+                            {item.qty} {item.unit}
+                          </div>
+                        </div>
+                        <div className="shrink-0 ml-4">
+                          {item.status === "bought" ? (
+                            <div className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100">
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              <span className="text-[10px] font-black uppercase tracking-tighter">ซื้อแล้ว</span>
+                            </div>
+                          ) : isUnavailable ? (
+                            <div className="flex items-center gap-1.5 text-red-400 bg-red-50 px-2 py-1 rounded-lg border border-red-50">
+                              <XCircle className="h-3.5 w-3.5" />
+                              <span className="text-[10px] font-black uppercase tracking-tighter">ไม่มี</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5 text-amber-600 bg-amber-50 px-2 py-1 rounded-lg border border-amber-100">
+                              <Clock className="h-3.5 w-3.5" />
+                              <span className="text-[10px] font-black uppercase tracking-tighter">รอดำเนินการ</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
 
             {selectedOrder.note && (
-              <div className="border-t border-slate-200 pt-4">
-                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900">
-                  <FileText className="h-4 w-4 text-slate-400" />
-                  หมายเหตุจากผู้จัดซื้อ
-                </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">
+              <div className="space-y-2 pt-1">
+                <span className="text-[11px] font-black text-slate-500 px-1 uppercase tracking-[0.2em] leading-none">ข้อความจากส่วนกลาง (Central Office Note)</span>
+                <div className="rounded-2xl border-2 border-slate-100 bg-slate-50/50 px-4 py-4 text-[13px] font-black leading-relaxed text-slate-800 shadow-inner">
                   {selectedOrder.note}
                 </div>
               </div>
             )}
 
-            <Button onClick={() => setSelectedOrder(null)} className="w-full">
-              ปิดหน้าต่าง
-            </Button>
+            <div className="pt-2">
+               <button 
+                  onClick={() => setSelectedOrder(null)} 
+                  className="w-full h-11 rounded-xl bg-slate-950 text-white text-sm font-bold uppercase tracking-widest"
+               >
+                 {isEditing ? "ปิด" : "หน้าหลัก"}
+               </button>
+            </div>
           </div>
         )}
       </Modal>

@@ -330,3 +330,241 @@ h6,
 .order-ui [class*="italic"] {
   font-style: normal !important;
 }
+
+.admin-ui {
+  color: #0f172a;
+}
+
+.admin-ui h1,
+.admin-ui h2,
+.admin-ui h3,
+.admin-ui h4,
+.admin-ui h5,
+.admin-ui h6 {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em;
+}
+
+.admin-ui [class*="shadow"] {
+  box-shadow: none !important;
+}
+
+.admin-ui [class*="rounded-3xl"] {
+  border-radius: 0.875rem !important;
+}
+
+.admin-ui [class*="rounded-2xl"] {
+  border-radius: 0.75rem !important;
+}
+
+.admin-ui [class*="rounded-xl"] {
+  border-radius: 0.625rem !important;
+}
+
+.admin-ui [class*="rounded-lg"],
+.admin-ui [class*="rounded-md"],
+.admin-ui button,
+.admin-ui input,
+.admin-ui select,
+.admin-ui textarea {
+  border-radius: 0.5rem !important;
+}
+
+.admin-ui button,
+.admin-ui input,
+.admin-ui select,
+.admin-ui textarea {
+  font-style: normal !important;
+  box-shadow: none !important;
+}
+
+.admin-ui input,
+.admin-ui select,
+.admin-ui textarea {
+  min-height: 2.5rem;
+  border-color: #cbd5e1 !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.admin-ui input::placeholder,
+.admin-ui textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.admin-ui .field-label,
+.admin-ui [class*="text-xs"],
+.admin-ui [class*="text-[10px]"],
+.admin-ui [class*="text-[11px]"] {
+  font-weight: 400 !important;
+}
+
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-bottom: 3rem;
+}
+
+.admin-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-page-title {
+  font-size: 1.875rem;
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.admin-page-subtitle {
+  font-size: 0.9375rem;
+  color: #475569;
+}
+
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-search {
+  position: relative;
+  min-width: 17rem;
+}
+
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.admin-stat-card {
+  border: 1px solid #d7dde5;
+  background: #ffffff;
+  padding: 1rem 1.125rem;
+}
+
+.admin-stat-label {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.admin-stat-value {
+  font-size: 1.625rem;
+  line-height: 1.1;
+  color: #0f172a;
+}
+
+.admin-stat-detail {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.admin-panel {
+  overflow: hidden;
+  border: 1px solid #d7dde5;
+  background: #ffffff;
+}
+
+.admin-panel-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 1rem 1.25rem;
+}
+
+.admin-panel-title {
+  font-size: 1rem;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.admin-panel-subtitle {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table thead tr {
+  background: #f8fafc;
+}
+
+.admin-table th {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+  text-align: left;
+}
+
+.admin-table td {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 1rem 1.25rem;
+  font-size: 0.875rem;
+  vertical-align: middle;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-empty-state {
+  display: flex;
+  min-height: 18rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.admin-empty-icon {
+  display: flex;
+  height: 3rem;
+  width: 3rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d7dde5;
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.admin-empty-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.admin-empty-description {
+  max-width: 28rem;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+@media (min-width: 640px) {
+  .admin-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-stat-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

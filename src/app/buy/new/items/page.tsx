@@ -48,126 +48,130 @@ export default function AddItemsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-md space-y-5 pb-12">
+    <div className="mx-auto max-w-md space-y-4 pb-12">
       <MobileHeader
-        title="รายการสินค้า"
+        title="รายการที่ต้องซื้อ"
         userName={buyer.lineDisplayName || buyer.name}
         userAvatar={buyer.linePictureUrl}
         userRole={buyer.role}
+        onBack={() => router.push("/buy/new")}
       />
 
-      <div className="px-1">
-        <div className="eyebrow mb-2">Step 2 of 3</div>
-        <h2 className="text-2xl font-semibold tracking-[-0.03em] text-slate-900">
-          เพิ่มสินค้าที่ต้องการซื้อ
-        </h2>
-        <p className="mt-2 text-sm leading-6 text-slate-500">
-          กรอกสินค้าแบบสั้น กระชับ และเพิ่มเข้ารายการได้ต่อเนื่อง
-        </p>
-      </div>
-
-      <Card className="space-y-5 border-slate-300 bg-white p-5">
-        <div>
-          <Label>ชื่อสินค้า</Label>
-          <Input
-            placeholder="เช่น ปูนซีเมนต์ หรือ เหล็กเส้น"
-            className="h-11"
-            value={newItem.name}
-            onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-          />
+      <div className="px-1.5 space-y-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 mb-1">
+             <div className="h-1.5 w-8 rounded-full bg-slate-900" />
+             <div className="h-1.5 w-8 rounded-full bg-slate-900" />
+             <div className="h-1.5 w-8 rounded-full bg-slate-100" />
+          </div>
+          <h2 className="text-[20px] font-black tracking-tight text-slate-900 leading-tight">
+            ระบุชื่อสินค้าที่จะสั่งซื้อ
+          </h2>
+          <p className="text-xs font-bold text-slate-600 uppercase tracking-widest leading-none mt-2">
+            กรอกสินค้าทีละรายการและจำนวนที่ต้องการ
+          </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label>จำนวน</Label>
-            <Input
-              type="number"
-              placeholder="0"
-              className="h-11"
-              value={newItem.quantity}
-              onChange={(e) =>
-                setNewItem({ ...newItem, quantity: e.target.value })
-              }
+        <div className="rounded-2xl border-2 border-slate-100 bg-white p-5 space-y-5 shadow-sm">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 uppercase tracking-widest px-0.5">ระบุชื่อสินค้า (Item Description)</label>
+            <input
+              placeholder="เช่น ปูนตราเสือ, เหล็ก 4 หุน..."
+              className="h-12 w-full px-4 rounded-xl border-2 border-slate-50 bg-slate-50/50 text-sm font-bold text-slate-950 outline-none shadow-sm"
+              value={newItem.name}
+              onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
             />
           </div>
-          <div>
-            <Label>หน่วยนับ</Label>
-            <Select
-              className="h-11"
-              value={newItem.unit}
-              onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
-            >
-              {settings.units.map((unit) => (
-                <option key={unit} value={unit}>
-                  {unit}
-                </option>
-              ))}
-            </Select>
-          </div>
-        </div>
 
-        <Button variant="accent" onClick={addItem} className="w-full">
-          <Plus className="h-4 w-4" />
-          เพิ่มสินค้า
-        </Button>
-      </Card>
-
-      <Card className="space-y-4 border-slate-300 bg-white p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="eyebrow mb-2">Selected Items</div>
-            <div className="text-sm text-slate-900">
-              ทั้งหมด {orderData.items.length} รายการ
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-widest px-0.5">จำนวน (Qty)</label>
+              <input
+                type="number"
+                placeholder="0"
+                className="h-12 w-full px-4 rounded-xl border-2 border-slate-50 bg-slate-50/50 text-sm font-bold text-slate-950 outline-none shadow-sm"
+                value={newItem.quantity}
+                onChange={(e) =>
+                  setNewItem({ ...newItem, quantity: e.target.value })
+                }
+              />
             </div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          {orderData.items.length === 0 ? (
-            <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center">
-              <Package className="mx-auto mb-3 h-8 w-8 text-slate-300" />
-              <p className="text-sm text-slate-500">ยังไม่มีสินค้าในรายการ</p>
-            </div>
-          ) : (
-            orderData.items.map((item, index) => (
-              <div
-                key={`${item.name}-${index}`}
-                className="flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-4 py-3"
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-widest px-0.5">หน่วยนับ (Unit)</label>
+              <select
+                className="h-12 w-full px-4 rounded-xl border-2 border-slate-50 bg-slate-50/50 text-sm font-bold text-slate-950 outline-none appearance-none shadow-sm"
+                value={newItem.unit}
+                onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
               >
-                <div className="min-w-0">
-                  <div className="truncate text-sm text-slate-900">{item.name}</div>
-                  <div className="mt-1 text-xs text-slate-500">
-                    {item.quantity} {item.unit}
-                  </div>
-                </div>
-                <button
-                  onClick={() => removeItem(index)}
-                  className="rounded-md border border-transparent p-2 text-red-500 transition-colors hover:border-red-200 hover:bg-red-50"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-      </Card>
+                {settings.units.map((unit) => (
+                  <option key={unit} value={unit}>
+                    {unit}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-      <div className="flex gap-3">
-        <Button
-          onClick={() => router.push("/buy/new")}
-          variant="secondary"
-          className="flex-1"
-        >
-          ย้อนกลับ
-        </Button>
-        <Button
-          disabled={orderData.items.length === 0}
-          onClick={() => router.push("/buy/new/confirm")}
-          className="flex-[1.4]"
-        >
-          ถัดไป
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+          <button 
+             onClick={addItem} 
+             className="w-full h-12 rounded-xl bg-slate-900 text-white text-[14px] font-black flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-lg shadow-slate-900/15 uppercase tracking-widest"
+          >
+            <Plus className="h-5 w-5 stroke-[3px]" />
+            เพิ่มเข้ารายการ
+          </button>
+        </div>
+
+        <div className="space-y-3 pt-2">
+           <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-slate-600 leading-none">รายการที่เพิ่มแล้ว ({orderData.items.length})</span>
+           </div>
+
+           <div className="space-y-2">
+             {orderData.items.length === 0 ? (
+               <div className="rounded-2xl border-2 border-dashed border-slate-100 bg-white/50 py-12 text-center">
+                 <Package className="mx-auto mb-3 h-10 w-10 text-slate-200" />
+                 <p className="text-[13px] font-black text-slate-500 uppercase tracking-widest">เพิ่มสินค้าก่อนไปต่อ</p>
+               </div>
+             ) : (
+               orderData.items.map((item, index) => (
+                 <div
+                   key={`${item.name}-${index}`}
+                   className="flex items-center justify-between rounded-xl border-2 border-slate-50 bg-white p-4 shadow-sm group animate-in slide-in-from-right-3 duration-300"
+                 >
+                   <div className="min-w-0">
+                     <div className="truncate text-base font-bold text-slate-950 leading-tight mb-1 uppercase tracking-tight">{item.name}</div>
+                     <div className="text-xs font-bold text-slate-600 bg-slate-50 inline-block px-2.5 py-1 rounded-md border border-slate-100 uppercase tracking-widest">
+                       {item.quantity} {item.unit}
+                     </div>
+                   </div>
+                   <button
+                     onClick={() => removeItem(index)}
+                     className="h-10 w-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all active:scale-[0.9]"
+                   >
+                     <Trash2 className="h-5 w-5" />
+                   </button>
+                 </div>
+               ))
+             )}
+           </div>
+        </div>
+
+        <div className="flex gap-3 pt-4">
+          <button
+            onClick={() => router.push("/buy/new")}
+            className="flex-1 h-14 rounded-2xl border-2 border-slate-200 text-sm font-black text-slate-600 hover:bg-slate-50 transition-all active:scale-[0.98] uppercase tracking-widest"
+          >
+            ย้อนกลับ
+          </button>
+          <button
+            disabled={orderData.items.length === 0}
+            onClick={() => router.push("/buy/new/confirm")}
+            className="flex-[1.5] h-14 rounded-2xl bg-slate-900 text-white text-[15px] font-black shadow-lg shadow-slate-900/15 active:scale-[0.98] transition-all disabled:opacity-30 disabled:grayscale uppercase tracking-[0.1em] flex items-center justify-center gap-2"
+          >
+            ไปหน้ายืนยัน
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
       </div>
     </div>
   );

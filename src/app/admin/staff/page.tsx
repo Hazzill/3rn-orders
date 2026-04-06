@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
-import { Users, MoreVertical, Loader2, Phone, ShieldCheck, Mail, Smartphone, UserPlus, Link2, Unlink } from "lucide-react";
+import { Users, MoreVertical, Loader2, Phone, ShieldCheck, Mail, Smartphone, UserPlus, Link2, Unlink, Search, CheckCircle2, Shield, Edit3 } from "lucide-react";
 import { Button, cn } from "@/components/ui/Button";
 import { Card, Input, Label, Select } from "@/components/ui/FormElements";
 import { Modal } from "@/components/ui/Modal";
@@ -21,6 +21,13 @@ export default function StaffPage() {
     role: "ผู้สั่งซื้อ",
     status: "active"
   });
+
+  const staffStats = [
+    { label: "TOTAL STAFF", value: staff.length, icon: Users, color: "text-slate-400", bg: "bg-slate-50" },
+    { label: "ADMINISTRATORS", value: staff.filter(s => s.role === 'Admin').length, icon: Shield, color: "text-blue-500", bg: "bg-blue-50" },
+    { label: "ACTIVE USERS", value: staff.filter(s => s.status === 'active').length, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-50" },
+    { label: "LINE CONNECTED", value: staff.filter(s => s.lineUserId).length, icon: Link2, color: "text-[#06C755]", bg: "bg-[#06C755]/5" },
+  ];
 
   const handleOpenAdd = () => {
     setIsEditing(false);
@@ -71,209 +78,177 @@ export default function StaffPage() {
       setIsModalOpen(false);
     } catch (err) {
       console.error("Firestore Save Error:", err);
-      alert(`Error saving staff member. Check browser console for details or verify Firebase keys in .env.local.`);
+      alert(`Error saving staff member.`);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold text-gray-900 uppercase tracking-tight">รายชื่อทีมงานทั้งหมด</h3>
-        <Button onClick={handleOpenAdd} className="rounded-xl px-6 flex items-center gap-2">
-          <UserPlus className="w-4 h-4" /> เพิ่มพนักงานใหม่
-        </Button>
-      </div>
-      <Card className="bg-white border border-gray-100 p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border border-gray-100/50">
-                <th className="px-6 py-4 text-sm font-semibold text-gray-700 border-b border-gray-100 uppercase tracking-wider">พนักงาน</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-700 border-b border-gray-100 uppercase tracking-wider">ตำแหน่ง / สิทธิ์</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-700 border-b border-gray-100 uppercase tracking-wider">สถานะ</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-700 border-b border-gray-100 uppercase tracking-wider">เบอร์โทรศัพท์</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-700 border-b border-gray-100 uppercase tracking-wider">LINE</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-700 border-b border-gray-100 uppercase tracking-wider text-center">รวมรายการ</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-700 border-b border-gray-100 uppercase tracking-wider text-right">จัดการ</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {loading ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-20 text-center">
-                    <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
-                  </td>
-                </tr>
-              ) : staff.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-20 text-center text-gray-400 font-semibold">ไม่พบรายชื่อพนักงาน</td>
-                </tr>
-              ) : staff.map((member) => (
-                <tr key={member.id} className="hover:bg-gray-50 border border-gray-100/50 transition-all group">
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center border border-gray-200 overflow-hidden flex-shrink-0">
-                        {member.linePictureUrl ? (
-                          <Image
-                            src={member.linePictureUrl}
-                            alt={member.name}
-                            width={40}
-                            height={40}
-                            className="w-full h-full object-cover"
-                            unoptimized
-                          />
-                        ) : (
-                          <Users className="w-5 h-5 text-gray-300" />
-                        )}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-gray-900">{member.name}</span>
-                        <span className="text-xs text-gray-400 font-medium">@{member.username || member.id.slice(-6)}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className={cn("w-4 h-4", member.role === 'Admin' ? "text-primary" : "text-gray-400")} />
-                      <span className="text-sm font-semibold text-gray-700">{member.role}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-2">
-                      <div className={cn("w-2 h-2 rounded-xl", member.status === 'active' ? "bg-green-500 animate-pulse" : "bg-gray-300")} />
-                      <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">{member.status}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
-                      <Phone className="w-3.5 h-3.5 opacity-40" /> {member.phone || "-"}
-                    </div>
-                  </td>
-                  <td className="px-6 py-5">
-                    {member.lineUserId ? (
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1.5">
-                          <Link2 className="w-3.5 h-3.5 text-[#06C755]" />
-                          <span className="text-xs font-semibold text-[#06C755]">เชื่อมต่อแล้ว</span>
-                        </div>
-                        {member.lineDisplayName && (
-                          <div className="text-[11px] text-gray-500 truncate max-w-[120px]" title={member.lineDisplayName}>
-                            {member.lineDisplayName}
-                          </div>
-                        )}
-                        <div className="text-[10px] text-gray-400 font-mono truncate max-w-[120px]" title={member.lineUserId}>
-                          {member.lineUserId.slice(0, 12)}...
-                        </div>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleUnlinkLine(member); }}
-                          className="mt-1 flex items-center gap-1 text-[10px] text-red-400 hover:text-red-600 transition-colors uppercase tracking-wider font-bold opacity-0 group-hover:opacity-100"
-                        >
-                          <Unlink className="w-3 h-3" />
-                          ยกเลิกเชื่อมต่อ
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full bg-gray-200" />
-                        <span className="text-xs text-gray-400">ยังไม่ผูก LINE</span>
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-5 text-center text-sm font-semibold text-gray-900"> {member.deals || 0} </td>
-                  <td className="px-6 py-5 text-right">
-                    <button onClick={() => handleOpenEdit(member)} className="text-gray-300 hover:text-gray-900 transition-colors p-2" >
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <div className="admin-page">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <div className="space-y-1">
+           <h1 className="text-3xl font-bold text-slate-950 tracking-tight leading-none uppercase">บัญชีพนักงาน</h1>
+           <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-none">Internal Resource Directory</p>
         </div>
-      </Card>
-      {/* Staff Form Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={isEditing ? "แก้ไขข้อมูลพนักงาน" : "เพิ่มพนักงานใหม่"} >
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            {/* Show LINE info if editing a linked user */}
-            {isEditing && formData.lineUserId && (
-              <div className="rounded-xl border border-[#06C755]/20 bg-[#06C755]/5 p-4">
-                <div className="flex items-center gap-3">
-                  {formData.linePictureUrl ? (
-                    <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#06C755]/20 flex-shrink-0">
-                      <Image
-                        src={formData.linePictureUrl}
-                        alt="LINE"
-                        width={48}
-                        height={48}
-                        className="w-full h-full object-cover"
-                        unoptimized
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-12 h-12 rounded-xl bg-[#06C755]/10 flex items-center justify-center border border-[#06C755]/20 flex-shrink-0">
-                      <Link2 className="w-5 h-5 text-[#06C755]" />
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs font-bold text-[#06C755] uppercase tracking-wider">LINE Connected</div>
-                    {formData.lineDisplayName && (
-                      <div className="text-sm font-semibold text-gray-800 truncate">{formData.lineDisplayName}</div>
-                    )}
-                    <div className="text-[10px] text-gray-400 font-mono truncate">{formData.lineUserId}</div>
-                  </div>
-                </div>
-              </div>
-            )}
+        <div className="flex items-center gap-3">
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+            <Input
+              placeholder="ค้นหาพนักงาน..."
+              className="pl-11 h-12 bg-white border-2 border-slate-100 rounded-xl w-64 text-sm font-bold shadow-sm focus:border-blue-400 transition-all font-sans"
+            />
+          </div>
+          <Button
+            onClick={handleOpenAdd}
+            className="h-11 px-6 rounded-xl bg-slate-950 text-white font-bold uppercase text-xs tracking-widest flex items-center gap-2 shadow-sm"
+          >
+            <UserPlus className="w-4 h-4" /> เพิ่มพนักงาน
+          </Button>
+        </div>
+      </div>
 
-            <div className="grid grid-cols-1 gap-4">
-              <div className="space-y-1">
-                <Label>ชื่อ-นามสกุล</Label>
-                <div className="relative">
-                  <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input required placeholder="เช่น สมชาย มีสุข" className="pl-12 bg-gray-50 border-gray-100" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {staffStats.map((stat, i) => (
+          <div key={i} className="group relative overflow-hidden rounded-xl border-2 border-slate-100 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", stat.bg, stat.color)}>
+                <stat.icon className="h-5 w-5" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label>ชื่อผู้ใช้งาน (Username)</Label>
-                  <div className="relative">
-                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input required placeholder="เช่น somchai_123" className="pl-12 bg-gray-50 border-gray-100" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <Label>เบอร์โทรศัพท์</Label>
-                  <div className="relative">
-                    <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input placeholder="08X-XXX-XXXX" className="pl-12 bg-gray-50 border-gray-100" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <Label>ตำแหน่งงาน / สิทธิ์การใช้งาน</Label>
-                <Select className="bg-gray-50 border-gray-100 font-semibold" value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} >
-                  <option value="ผู้สั่งซื้อ">📁 ผู้สั่งซื้อ (Orderer)</option>
-                  <option value="พนักงานจัดซื้อ">🛒 พนักงานจัดซื้อ (Buyer)</option>
-                  <option value="Admin">⚡ ผู้ดูแลระบบ (Admin)</option>
-                </Select>
-                <p className="text-xs text-gray-400 mt-2 px-1 uppercase tracking-wider font-bold opacity-70"> * กำหนดตำแหน่งเพื่อให้ระบบแยกหน้าการใช้งานอัตโนมัติ </p>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-none mb-1.5 truncate">{stat.label}</div>
+                <div className="text-xl font-bold text-slate-950 leading-none">{stat.value}</div>
               </div>
             </div>
           </div>
-          <div className="flex gap-4 pt-4">
-            <Button type="button" variant="secondary" className="flex-1 py-6 rounded-xl bg-white border border-gray-100 font-bold uppercase tracking-wider text-xs" onClick={() => setIsModalOpen(false)} >ยกเลิก</Button>
-            <Button disabled={submitting} className="flex-[2] py-6 rounded-xl bg-gray-900 text-white font-bold uppercase tracking-wider text-xs" >
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : isEditing ? "บันทึกการแก้ไข" : "สร้างบัญชีพนักงาน"}
-            </Button>
+        ))}
+      </div>
+
+      <div className="rounded-2xl border-2 border-slate-100 bg-white shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="admin-table">
+            <thead>
+              <tr className="bg-slate-50/80">
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100">MEMBER IDENTITY</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100">PERMISSION / ROLE</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100">STATUS</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100">MOBILE</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100">LINE LINK</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100 text-right">ACTION</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} className="px-8 py-32 text-center opacity-30 animate-pulse font-black uppercase text-[12px] tracking-widest">CONNECTING TO DATABASE...</td></tr>
+              ) : staff.length === 0 ? (
+                <tr><td colSpan={6} className="px-8 py-40 text-center text-slate-300">
+                  <Users className="w-16 h-16 mx-auto mb-4 opacity-20" />
+                  <span className="text-[12px] font-black uppercase tracking-widest">NO STAFF MEMBERS FOUND</span>
+                </td></tr>
+              ) : (
+                staff.map((member) => (
+                  <tr key={member.id} className="group hover:bg-slate-50/50 transition-all font-bold">
+                    <td className="px-6 py-4">
+                       <div className="flex items-center gap-4">
+                          <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 overflow-hidden shrink-0 group-hover:border-primary transition-all">
+                             {member.linePictureUrl ? (
+                               <Image src={member.linePictureUrl} alt={member.name} width={40} height={40} className="w-full h-full object-cover" unoptimized />
+                             ) : (
+                               <Users className="h-5 w-5" />
+                             )}
+                          </div>
+                          <div className="min-w-0">
+                             <div className="text-sm font-bold text-slate-950 leading-tight truncate uppercase tracking-tight">{member.name}</div>
+                             <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">@{member.username || member.id.slice(-6).toUpperCase()}</div>
+                          </div>
+                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                           <ShieldCheck className={cn("h-4 w-4", member.role === 'Admin' ? "text-primary" : "text-slate-300")} />
+                           <span className="text-sm font-bold text-slate-700 uppercase">{member.role}</span>
+                        </div>
+                    </td>
+                    <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                           <div className={cn("h-1.5 w-1.5 rounded-full", member.status === 'active' ? "bg-emerald-500" : "bg-slate-300")} />
+                           <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{member.status}</span>
+                        </div>
+                    </td>
+                    <td className="px-6 py-4 font-mono text-[13px] text-slate-400">
+                       {member.phone || "—"}
+                    </td>
+                    <td className="px-6 py-4">
+                       {member.lineUserId ? (
+                          <div className="flex flex-col gap-1 items-start group/line">
+                             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#06C755]/10 text-[#06C755] text-[9px] font-black uppercase tracking-widest">
+                                <Link2 className="h-3 w-3" /> CONNECTED
+                             </span>
+                             <button
+                               onClick={() => handleUnlinkLine(member)}
+                               className="text-[9px] font-black text-red-400 uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
+                             >
+                               UNLINK ACCOUNT ?
+                             </button>
+                          </div>
+                       ) : (
+                          <span className="text-[11px] font-bold text-slate-300 uppercase tracking-tighter italic">No Link</span>
+                       )}
+                    </td>
+                    <td className="px-6 py-4 text-right pr-6">
+                       <button 
+                        onClick={() => handleOpenEdit(member)} 
+                        className="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-400 hover:bg-slate-950 hover:text-white transition-all active:scale-95"
+                       >
+                         <Edit3 className="w-4 w-4" />
+                       </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Staff Form Modal */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={<span className="font-black uppercase tracking-widest text-[14px]">{isEditing ? "แก้ไขข้อมูลพนักงาน" : "ลงทะเบียนพนักงานใหม่"}</span>}>
+        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">ชื่อ-นามสกุล (FULL NAME)</Label>
+              <Input required placeholder="ระบุชื่อจริงภาษาไทย..." className="h-12 border-2 border-slate-100 rounded-xl text-[14px] font-bold text-slate-900" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">ชื่อผู้ใช้งาน (LOGIN ID)</Label>
+                <Input required placeholder="somchai_p" className="h-12 border-2 border-slate-100 rounded-xl text-[14px] font-bold text-slate-900 font-sans" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">เบอร์โทรศัพท์ (MOBILE)</Label>
+                <Input placeholder="08X-XXX-XXXX" className="h-12 border-2 border-slate-100 rounded-xl text-[14px] font-bold text-slate-900 font-sans" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">บทบาทและความรับผิดชอบ</Label>
+              <Select className="h-12 border-2 border-slate-100 rounded-xl text-[14px] font-bold text-slate-900" value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} >
+                <option value="ผู้สั่งซื้อ">📁 ผู้สั่งซื้อ (Orderer)</option>
+                <option value="พนักงานจัดซื้อ">🛒 พนักงานจัดซื้อ (Buyer)</option>
+                <option value="Admin">⚡ ผู้ดูแลระบบ (Admin)</option>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-6 border-t-2 border-slate-50 mt-4">
+            <button type="button" className="flex-1 h-12 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-400 hover:bg-slate-50 border-2 border-transparent" onClick={() => setIsModalOpen(false)}>ยกเลิก</button>
+            <button disabled={submitting} className="flex-[2] h-12 bg-slate-950 text-white text-sm font-bold uppercase tracking-widest rounded-xl flex items-center justify-center gap-3 shadow-sm">
+              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CheckCircle2 className="w-5 h-5 text-primary" /> {isEditing ? "บันทึกแก้ไข" : "ยืนยันลงทะเบียน"}</>}
+            </button>
           </div>
         </form>
       </Modal>
-      <div className="pt-4 px-2">
-        <p className="text-xs text-gray-400">แสดงผลข้อมูลพนักงานแบบเรียลไทม์จากระบบ Firebase Authentication</p>
-      </div>
     </div>
   );
 }

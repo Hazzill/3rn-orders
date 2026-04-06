@@ -25,6 +25,7 @@ export interface Order {
   requesterUsername?: string;
   storeName?: string;
   location?: string;
+  mapUrl?: string;
   contact?: string;
   items: Item[];
   status: "pending" | "buying" | "sorting" | "completed" | "cancelled";

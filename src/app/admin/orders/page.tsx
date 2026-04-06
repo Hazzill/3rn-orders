@@ -17,7 +17,9 @@ import {
   Store,
   Edit3,
   XCircle,
-  FileText
+  FileText,
+  Activity,
+  History
 } from "lucide-react";
 import { Button, cn } from "@/components/ui/Button";
 import { Card, Input, Label, Select } from "@/components/ui/FormElements";
@@ -29,26 +31,24 @@ import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { Order, Item } from "@/types";
 
-const STATUS_COLORS: Record<string, string> = {
-  pending: "bg-amber-50 text-amber-700 border-amber-200/50",
-  buying: "bg-blue-50 text-blue-700 border-blue-200/50",
-  sorting: "bg-purple-50 text-purple-700 border-purple-200/50",
-  completed: "bg-emerald-50 text-emerald-700 border-emerald-200/50",
-  cancelled: "bg-red-50 text-red-700 border-red-200/50",
+const STATUS_CHIPS: Record<string, { label: string; class: string }> = {
+  pending: { label: "รอยืนยัน", class: "border-amber-100 bg-amber-50 text-amber-600" },
+  buying: { label: "กำลังซื้อ", class: "border-blue-100 bg-blue-50 text-blue-600" },
+  sorting: { label: "ตรวจสอบ", class: "border-purple-100 bg-purple-50 text-purple-600" },
+  completed: { label: "สำเร็จแล้ว", class: "border-emerald-100 bg-emerald-50 text-emerald-600" },
+  cancelled: { label: "ยกเลิก", class: "border-red-100 bg-red-50 text-red-600" },
 };
 
 export default function OrdersPage() {
   const { settings, loading: settingsLoading } = useSettings();
-  const { orders, loading, updateOrderStatus, createOrder, updateOrder, updateItemStatus } = useOrders();
+  const { orders, loading, createOrder, updateOrder } = useOrders();
   const { staff } = useStaff();
-  
-  // Modals state
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  
-  // Forms state
+
   const [formData, setFormData] = useState<Partial<Order>>({
     requesterId: "",
     requesterName: "",
@@ -68,7 +68,6 @@ export default function OrdersPage() {
     unit: "ชิ้น",
   });
 
-  // Sync default unit
   useEffect(() => {
     if (!settingsLoading && settings.units.length > 0) {
       setNewItem(prev => ({ ...prev, unit: prev.unit || settings.units[0] }));
@@ -76,46 +75,15 @@ export default function OrdersPage() {
   }, [settingsLoading, settings.units]);
 
   const stats = [
-    {
-      label: "รายการทั้งหมด",
-      value: orders.length,
-      icon: Package,
-      color: "text-gray-400",
-      bg: "bg-gray-50 border border-gray-100",
-    },
-    {
-      label: "รอรับเรื่อง",
-      value: orders.filter((o) => o.status === "pending").length,
-      icon: Clock,
-      color: "text-amber-500",
-      bg: "bg-amber-50",
-    },
-    {
-      label: "กำลังจัดซื้อ",
-      value: orders.filter((o) => o.status === "buying").length,
-      icon: ShoppingCart,
-      color: "text-blue-500",
-      bg: "bg-blue-50",
-    },
-    {
-      label: "จัดส่งแล้ว",
-      value: orders.filter((o) => o.status === "completed").length,
-      icon: Truck,
-      color: "text-green-500",
-      bg: "bg-green-50",
-    },
+    { label: "ALL ORDERS", value: orders.length, icon: Package, color: "text-slate-400", bg: "bg-slate-50", sub: "รายการทั้งหมด" },
+    { label: "PENDING", value: orders.filter((o) => o.status === "pending").length, icon: Clock, color: "text-amber-500", bg: "bg-amber-50", sub: "รอรับเรื่อง" },
+    { label: "PROCESSING", value: orders.filter((o) => o.status === "buying").length, icon: ShoppingCart, color: "text-blue-500", bg: "bg-blue-50", sub: "กำลังจัดซื้อ" },
+    { label: "ARCHIVED", value: orders.filter((o) => o.status === "completed").length, icon: History, color: "text-emerald-500", bg: "bg-emerald-50", sub: "เสร็จสิ้น" },
   ];
 
   const handleOpenAdd = () => {
     setIsEditing(false);
-    setFormData({
-      requesterId: "",
-      requesterName: "",
-      storeName: "",
-      items: [],
-      status: "pending",
-      note: "",
-    });
+    setFormData({ requesterId: "", requesterName: "", storeName: "", items: [], status: "pending", note: "" });
     setIsModalOpen(true);
   };
 
@@ -147,38 +115,22 @@ export default function OrdersPage() {
   };
 
   const handleRemoveItem = (id: string) => {
-    setFormData({
-      ...formData,
-      items: (formData.items || []).filter((i) => i.id !== id),
-    });
+    setFormData({ ...formData, items: (formData.items || []).filter((i) => i.id !== id) });
   };
 
   const updateManagedItemStatus = (itemId: string, status: Item["status"]) => {
-    setManagedItems(prev => prev.map(item => 
-      item.id === itemId ? { ...item, status } : item
-    ));
+    setManagedItems(prev => prev.map(item => item.id === itemId ? { ...item, status } : item));
   };
 
   const saveManagedItems = async () => {
     if (!managingOrder) return;
     setSubmitting(true);
     try {
-      // Check if all items are completed to auto-complete the order
-      const allCompleted = managedItems.length > 0 && managedItems.every(i => i.status !== "to_buy");
-      
-      let newStatus = managingOrder.status;
-      if (allCompleted) newStatus = "completed";
-      else newStatus = "buying";
-
-      await updateOrder(managingOrder.id, {
-        items: managedItems,
-        note: manageNote,
-        status: newStatus
-      });
-      
+      const allDone = managedItems.length > 0 && managedItems.every(i => i.status !== "to_buy");
+      let newStatus = allDone ? "completed" : "buying";
+      await updateOrder(managingOrder.id, { items: managedItems, note: manageNote, status: newStatus as Order["status"] });
       setIsManageModalOpen(false);
     } catch (err) {
-      console.error(err);
       alert("เกิดข้อผิดพลาดในการบันทึก");
     } finally {
       setSubmitting(false);
@@ -193,14 +145,10 @@ export default function OrdersPage() {
     }
     setSubmitting(true);
     try {
-      if (isEditing && formData.id) {
-        await updateOrder(formData.id, formData);
-      } else {
-        await createOrder(formData);
-      }
+      if (isEditing && formData.id) await updateOrder(formData.id, formData);
+      else await createOrder(formData);
       setIsModalOpen(false);
     } catch (err) {
-      console.error(err);
       alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
     } finally {
       setSubmitting(false);
@@ -208,104 +156,154 @@ export default function OrdersPage() {
   };
 
   if (settingsLoading) {
-    return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-primary" /></div>;
+    return <div className="flex flex-col items-center justify-center py-40 animate-pulse text-slate-300">
+      <Loader2 className="h-12 w-12 animate-spin mb-4" />
+      <span className="text-sm font-black  tracking-widest">กำลังดึงข้อมูลมาให้ช้าๆ...</span>
+    </div>;
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 antialiased font-normal text-gray-900">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex flex-col">
-          <h3 className="text-2xl text-gray-900 uppercase leading-none">
-            จัดการรายการสั่งซื้อ
-          </h3>
-          <span className="text-sm text-gray-400 mt-1">
-            ระบบจัดการรายการสั่งซื้อเรียลไทม์
-          </span>
+    <div className="admin-page">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
+        <div className="space-y-1">
+          <h1 className="text-xl  text-slate-950 tracking-tight leading-none ">จัดการออร์เดอร์</h1>
+          <p className="text-sm  text-slate-500  tracking-[0.2em] leading-none">Global Procurement Control</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-900 group-focus-within:text-primary transition-colors" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-slate-900" />
             <Input
               placeholder="ค้นหาบิลสั่งซื้อ..."
-              className="pl-12 pr-4 h-11 bg-white border border-gray-100 rounded-xl w-64 text-sm"
+              className="pl-11 h-11 bg-white border-2 border-slate-100 rounded-xl w-64 text-sm font-black shadow-sm outline-none font-sans"
             />
           </div>
           <Button
             onClick={handleOpenAdd}
-            className="rounded-xl h-11 px-6 text-sm bg-gray-900 text-white flex items-center gap-2 hover:bg-primary hover:text-black transition-all"
+            className="h-11 px-6 rounded-xl bg-slate-950 text-white   text-sm tracking-widest flex items-center gap-2 active:bg-slate-800 shadow-lg"
           >
-            <Plus className="w-4 h-4" /> สร้างออเดอร์ใหม่
+            <Plus className="w-4 h-4" /> สร้างบิล
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-gray-900 text-sm">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {stats.map((stat, i) => (
-          <Card key={i} className="p-6 flex items-center gap-4 bg-white border border-gray-100 rounded-xl transition-transform hover:translate-y-[-2px]">
-            <div className={cn("w-14 h-14 rounded-lg flex items-center justify-center", stat.bg)}>
-              <stat.icon className={cn("w-7 h-7", stat.color)} />
+          <div key={i} className="group relative overflow-hidden rounded-xl border-2 border-slate-100 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", stat.bg, stat.color)}>
+                <stat.icon className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-sm  text-slate-500  tracking-widest leading-none mb-1 truncate">{stat.label}</div>
+                <div className="text-lg  text-slate-900 leading-none">{stat.value}</div>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm text-gray-400 uppercase">{stat.label}</span>
-              <span className="text-2xl text-gray-900">{stat.value}</span>
-            </div>
-          </Card>
+          </div>
         ))}
       </div>
 
-      <Card className="bg-white border border-gray-100 rounded-xl p-0 overflow-hidden shadow-sm">
+      <div className="rounded-2xl border-2 border-slate-100 bg-white shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="admin-table">
             <thead>
-              <tr className="bg-gray-50 border border-gray-100/50">
-                <th className="px-8 py-5 text-xs text-gray-400 uppercase border-b border-gray-100">เลขที่ออเดอร์</th>
-                <th className="px-8 py-5 text-xs text-gray-400 uppercase border-b border-gray-100">พนักงานผู้สั่ง</th>
-                <th className="px-8 py-5 text-xs text-gray-400 uppercase border-b border-gray-100">ชื่อร้านค้า</th>
-                <th className="px-8 py-5 text-xs text-gray-400 uppercase border-b border-gray-100 text-center">รายการ</th>
-                <th className="px-8 py-5 text-xs text-gray-400 uppercase border-b border-gray-100 tracking-tight">สถานะปัจจุบัน</th>
-                <th className="px-8 py-5 text-xs text-gray-400 uppercase border-b border-gray-100 text-right">วันที่สร้าง</th>
-                <th className="px-8 py-5 text-xs text-gray-400 uppercase border-b border-gray-100 text-center">จัดการ</th>
+              <tr className="bg-slate-50/80">
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100">BILL ID</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100">REQUESTER</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100">PARTNER STORE</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100">BUYER</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100 text-center">ITEMS</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100">STATUS</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100 text-right">DATE/TIME</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100 text-center">ACTION</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50/50">
+            <tbody>
               {loading ? (
-                <tr><td colSpan={7} className="px-8 py-32 text-center"><Loader2 className="w-10 h-10 text-primary animate-spin mx-auto" /></td></tr>
+                <tr><td colSpan={8} className="px-8 py-32 text-center opacity-30 animate-pulse font-bold text-sm tracking-widest text-slate-400 uppercase">Syncing Cloud Database...</td></tr>
               ) : orders.length === 0 ? (
-                <tr><td colSpan={7} className="px-8 py-40 text-center opacity-30">
-                  <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-gray-200" />
-                  <span className="text-sm text-gray-400 uppercase tracking-tight">ยังไม่มีรายการสั่งซื้อ</span>
+                <tr><td colSpan={8} className="px-8 py-40 text-center text-slate-300">
+                  <ShoppingBag className="w-16 h-16 mx-auto mb-4 opacity-20" />
+                  <span className="text-xs font-bold tracking-widest uppercase">No Active Orders found</span>
                 </td></tr>
               ) : (
                 orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50 transition-all font-medium">
-                    <td className="px-8 py-6 text-sm text-gray-900 tracking-tight">#{order.id.slice(-6).toUpperCase()}</td>
-                    <td className="px-8 py-6 text-sm text-gray-900">{order.requesterName}</td>
-                    <td className="px-8 py-6 text-sm text-gray-600">{order.storeName || "—"}</td>
-                    <td className="px-8 py-6 text-center text-sm text-gray-500 uppercase">{order.items.length} สินค้า</td>
-                    <td className="px-8 py-6">
-                       <button
+                  <tr key={order.id} className="group hover:bg-slate-50/80 transition-colors border-b border-slate-50 last:border-0">
+                    <td className="px-5 py-4 text-[11px] font-mono font-medium text-slate-400 group-hover:text-slate-900 transition-colors">#{order.id.slice(-6)}</td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-8 w-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600 shadow-sm">
+                          {order.requesterName?.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-slate-950 leading-tight">{order.requesterName}</span>
+                          <span className="text-[10px] font-medium text-slate-400 tracking-tight">พนักงานสั่ง</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-slate-950 leading-tight">{order.storeName || "ทั่วไป"}</span>
+                        <span className="text-[10px] font-medium text-slate-400 tracking-tight">ร้านค้าคู่ค้า</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      {order.buyerId ? (
+                        <div className="flex items-center gap-2">
+                          <div className="h-6 w-6 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[8px] font-bold text-emerald-600">
+                            {staff.find(s => s.id === order.buyerId)?.name.substring(0, 2).toUpperCase() || "??"}
+                          </div>
+                          <span className="text-[12px] font-medium text-slate-600">
+                            {staff.find(s => s.id === order.buyerId)?.name || "—"}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-50 text-slate-300 border border-slate-100">
+                          ยังไม่มีผู้ซื้อ
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-4 text-center">
+                      <span className="inline-flex h-6 px-2.5 items-center rounded-lg bg-slate-50 text-[11px] font-bold text-slate-500 border border-slate-100">
+                        {order.items.length} รายการ
+                      </span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <button
                         onClick={() => handleOpenManage(order)}
                         className={cn(
-                          "inline-flex items-center rounded-lg px-3 py-1 border text-[11px] font-bold tracking-tight uppercase transition-all whitespace-nowrap hover:scale-105 active:scale-95 shadow-sm",
-                          STATUS_COLORS[order.status] || "bg-gray-50 text-gray-600 border-gray-100"
+                          "inline-flex items-center rounded-lg px-2.5 py-1 border text-[11px] font-bold tracking-tight shadow-sm transition-all hover:scale-105 active:scale-95",
+                          STATUS_CHIPS[order.status]?.class || "bg-slate-50 text-slate-400 border-slate-200"
                         )}
                       >
-                        {order.status === "pending" && "รอยืนยัน"}
-                        {order.status === "buying" && "กำลังซื้อ"}
-                        {order.status === "completed" && "สำเร็จแล้ว"}
-                        {order.status === "cancelled" && "ยกเลิก"}
+                        {STATUS_CHIPS[order.status]?.label}
                       </button>
                     </td>
-                    <td className="px-8 py-6 text-right text-xs text-gray-500 uppercase">
-                      {order.createdAt ? format(order.createdAt.toDate(), "dd MMM yyyy", { locale: th }) : "—"}
+                    <td className="px-5 py-4 text-right">
+                      <div className="flex flex-col items-end">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Clock className="w-3 h-3 text-slate-400" />
+                          <span className="text-sm font-medium text-slate-950 leading-none">
+                            {order.createdAt ? format(order.createdAt.toDate(), "HH:mm", { locale: th }) : "—"}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-medium text-slate-400 tracking-wider">
+                          {order.createdAt ? format(order.createdAt.toDate(), "dd MMM yy", { locale: th }) : "—"}
+                        </span>
+                      </div>
                     </td>
-                    <td className="px-8 py-6 text-center flex items-center justify-center gap-2">
-                       <Button onClick={() => handleOpenManage(order)} variant="secondary" className="rounded-xl h-10 px-4 bg-primary/10 text-primary hover:bg-primary hover:text-black border-none">
-                        <Edit3 className="w-4 h-4" />
-                      </Button>
-                      <Button onClick={() => handleOpenEdit(order)} variant="secondary" className="rounded-xl h-10 px-4 bg-gray-50 border-gray-100 text-gray-400 hover:text-gray-900">
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
+                    <td className="px-5 py-3 text-center flex items-center justify-center gap-1.5">
+                      <button
+                        onClick={() => handleOpenManage(order)}
+                        className="h-8 w-8 flex items-center justify-center rounded-lg bg-primary text-slate-950 shadow-sm shadow-primary/10 hover:bg-[#b0f53d]"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleOpenEdit(order)}
+                        className="h-8 w-8 flex items-center justify-center rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-950 hover:text-white"
+                      >
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -313,46 +311,53 @@ export default function OrdersPage() {
             </tbody>
           </table>
         </div>
-      </Card>
+      </div>
 
       {/* Main Order Modal (Add/Edit) */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={isEditing ? "แก้ไขบิลสั่งซื้อ" : "สร้างบิลสั่งซื้อใหม่"}>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={<span className="font-black  tracking-widest text-[14px]">{isEditing ? "แก้ไขบิลสั่งซื้อ" : "สร้างบิลสั่งซื้อใหม่"}</span>}>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-sm text-gray-700">พนักงานผู้สั่งซื้อ</Label>
-              <Select required value={formData.requesterId} className="h-14 bg-gray-50 border-none rounded-xl text-sm" onChange={(e) => {
+          <div className="space-y-4 pt-4">
+            <div className="space-y-1.5">
+              <Label className="text-sm   tracking-widest text-slate-500">พนักงานผู้สั่งซื้อ (Requester)</Label>
+              <Select required value={formData.requesterId} className="h-11 border-2 border-slate-100 rounded-xl text-sm  text-slate-900" onChange={(e) => {
                 const s = staff.find(st => st.id === e.target.value);
                 setFormData({ ...formData, requesterId: e.target.value, requesterName: s?.name || "" });
               }}>
-                <option value="">เลือกพนักงานผู้แนะนำ...</option>
+                <option value="">เลือกพนักงาน...</option>
                 {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm text-gray-700">ร้านค้า (หากระบุพิกัด)</Label>
-              <Input placeholder="ระบุชื่อร้านค้าพาร์ทเนอร์..." className="h-14 bg-gray-50 border-none rounded-xl text-sm" value={formData.storeName} onChange={(e) => setFormData({ ...formData, storeName: e.target.value })} />
+            <div className="space-y-1.5">
+              <Label className="text-sm   tracking-widest text-slate-500">ชื่อร้านค้าคู่ค้า (Partner Store)</Label>
+              <Input placeholder="ระบุชื่อร้านค้า..." className="h-11 border-2 border-slate-100 rounded-xl text-sm  text-slate-900" value={formData.storeName} onChange={(e) => setFormData({ ...formData, storeName: e.target.value })} />
             </div>
-            <div className="pt-6 border-t border-gray-100 space-y-4 text-gray-900">
-              <Label className="text-gray-400 uppercase text-xs tracking-wider">รายการสินค้า</Label>
+
+            <div className="pt-6 mt-6 border-t-2 border-slate-50 space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-black  tracking-[0.2em] text-slate-400">รายการสินค้า • ITEMS</Label>
+                <span className="text-sm font-black text-slate-300">{(formData.items || []).length} SELECTED</span>
+              </div>
+
               <div className="flex gap-2">
-                <Input placeholder="ชื่อสินค้า..." className="flex-[2] h-14 bg-gray-50 border-none rounded-xl text-sm" value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} />
-                <Input type="number" placeholder="0" className="flex-1 h-14 bg-gray-50 border-none rounded-xl text-sm" value={newItem.qty} onChange={(e) => setNewItem({ ...newItem, qty: Number(e.target.value) })} />
-                <Select className="flex-1 h-14 bg-gray-50 border-none rounded-xl text-sm" value={newItem.unit} onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}>
+                <Input placeholder="ชื่อสินค้า..." className="flex-[2] h-11 bg-slate-50/50 border-2 border-slate-100 rounded-xl text-sm " value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} />
+                <Input type="number" placeholder="Qty" className="flex-1 h-11 bg-slate-50/50 border-2 border-slate-100 rounded-xl text-sm " value={newItem.qty} onChange={(e) => setNewItem({ ...newItem, qty: Number(e.target.value) })} />
+                <Select className="flex-1 h-11 bg-slate-50/50 border-2 border-slate-100 rounded-xl text-sm " value={newItem.unit} onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}>
                   {settings.units.map(u => <option key={u} value={u}>{u}</option>)}
                 </Select>
-                <Button type="button" onClick={handleAddItem} className="bg-gray-900 w-14 h-14 p-0 flex items-center justify-center rounded-xl transition-all active:scale-95 shadow-lg shadow-gray-200">
-                  <Plus className="w-6 h-6 text-white" />
-                </Button>
+                <button type="button" onClick={handleAddItem} className="bg-slate-950 w-11 h-11 flex items-center justify-center rounded-xl text-primary transition-all active:scale-95 shadow-lg">
+                  <Plus className="w-5 h-5" />
+                </button>
               </div>
-              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+
+              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 flex flex-col pt-2 custom-scrollbar">
+                {(formData.items || []).length === 0 && <div className="text-center py-10 rounded-xl border-2 border-dashed border-slate-100 text-sm font-black text-slate-300  tracking-widest">No Items Added</div>}
                 {(formData.items || []).map((item: Item) => (
-                  <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 group transition-all hover:bg-white hover:shadow-sm">
+                  <div key={item.id} className="flex items-center justify-between p-3.5 rounded-xl border-2 border-slate-50 group hover:border-slate-100 transition-all bg-white shadow-sm">
                     <div className="flex flex-col">
-                      <span className="text-sm text-gray-900">{item.name}</span>
-                      <span className="text-xs text-gray-400 uppercase">{item.qty} {item.unit}</span>
+                      <span className="text-sm  text-slate-950 leading-tight">{item.name}</span>
+                      <span className="text-sm font-semibold text-slate-500  tracking-widest mt-1">{item.qty} {item.unit}</span>
                     </div>
-                    <button type="button" onClick={() => handleRemoveItem(item.id)} className="text-gray-300 hover:text-red-500 p-2 transition-colors">
+                    <button type="button" onClick={() => handleRemoveItem(item.id)} className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-200 hover:bg-red-50 hover:text-red-500 transition-all">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -360,99 +365,96 @@ export default function OrdersPage() {
               </div>
             </div>
           </div>
-          <div className="flex gap-4 pt-6 border-t border-gray-100">
-            <Button type="button" variant="secondary" className="flex-1 h-14 rounded-xl border-gray-100 text-gray-500" onClick={() => setIsModalOpen(false)}>ยกเลิก</Button>
-            <Button disabled={submitting} className="flex-[2] h-14 bg-gray-900 text-white uppercase text-sm tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-xl shadow-gray-200">
-              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CheckCircle2 className="w-4 h-4" /> {isEditing ? "อัปเดตข้อมูลบิล" : "ยืนยันสร้างออเดอร์"}</>}
-            </Button>
+
+          <div className="flex gap-3 pt-6 border-t-2 border-slate-50">
+            <button type="button" className="flex-1 h-14 rounded-xl text-[12px] font-black  tracking-widest text-slate-400 hover:bg-slate-50 transition-all border-2 border-transparent" onClick={() => setIsModalOpen(false)}>ยกเลิก</button>
+            <button disabled={submitting} className="flex-[2] h-14 bg-slate-950 text-white text-sm font-black  tracking-[0.1em] rounded-xl flex items-center justify-center gap-3 shadow-xl active:scale-[0.98] transition-all">
+              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CheckCircle2 className="w-5 h-5 text-primary" /> {isEditing ? "อัปเดตบิล" : "สร้างออร์เดอร์ใหม่"}</>}
+            </button>
           </div>
         </form>
       </Modal>
 
       {/* Item Management Modal (Fulfillment) */}
-      <Modal 
-        isOpen={isManageModalOpen} 
-        onClose={() => setIsManageModalOpen(false)} 
-        title={managingOrder?.storeName || "รายละเอียดออเดอร์"}
-        showClose={false}
+      <Modal
+        isOpen={isManageModalOpen}
+        onClose={() => setIsManageModalOpen(false)}
+        title={<span className="font-black  tracking-widest text-[14px]">ยืนยันการจัดซื้อสินค้า</span>}
       >
-        <div className="space-y-8">
-           {/* Header Info */}
-          <div className="flex justify-between items-start border-b border-gray-100 pb-6">
-            <div className="flex flex-col gap-1">
-              <h2 className="text-xl font-bold text-gray-900">{managingOrder?.storeName || "ร้านค้า"}</h2>
-              <span className="text-sm text-gray-400 font-medium">{managedItems.length} รายการ</span>
+        <div className="space-y-6 pt-4">
+          <div className="flex items-center gap-4 border-b-2 border-slate-50 pb-6">
+            <div className="h-14 w-14 rounded-2xl bg-primary text-slate-950 flex items-center justify-center shadow-lg shadow-primary/10">
+              <Store className="h-7 w-7" />
             </div>
-            <div className="text-right">
-              <span className="text-sm font-semibold text-gray-700">คุณ {managingOrder?.requesterName}</span>
+            <div className="min-w-0">
+              <div className="text-lg  text-slate-950 leading-tight truncate  tracking-tight">{managingOrder?.storeName || "—"}</div>
+              <div className="text-sm  text-slate-500  tracking-widest flex items-center gap-1.5 mt-1.5">
+                <User className="h-3.5 w-3.5" />
+                Requester: {managingOrder?.requesterName}
+              </div>
             </div>
           </div>
-
-          {/* Items List */}
-          <div className="space-y-6">
-             {managedItems.map((item) => (
-               <div key={item.id} className="flex items-center justify-between gap-4">
-                 <div className="flex-[2]">
-                    <span className="text-lg font-bold text-gray-900">{item.name}</span>
-                 </div>
-                 <div className="flex-1 text-center">
-                    <span className="text-lg font-medium text-gray-700">{item.qty} {item.unit}</span>
-                 </div>
-                 <div className="flex-[2] flex gap-2">
-                    <button 
-                      onClick={() => updateManagedItemStatus(item.id!, "bought")}
-                      className={cn(
-                        "flex-1 h-11 rounded-lg text-xs font-bold transition-all",
-                        item.status === "bought" ? "bg-emerald-500 text-white shadow-lg shadow-emerald-100" : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
-                      )}
-                    >
-                      เรียบร้อย
-                    </button>
-                    <button 
-                      onClick={() => updateManagedItemStatus(item.id!, "to_buy")}
-                      className={cn(
-                        "flex-1 h-11 rounded-lg text-xs font-bold transition-all",
-                        item.status === "to_buy" ? "bg-gray-300 text-gray-700" : "bg-gray-100 text-gray-400"
-                      )}
-                    >
-                      อัพเดท
-                    </button>
-                    <button 
-                      onClick={() => updateManagedItemStatus(item.id!, "cancelled")}
-                      className={cn(
-                        "flex-1 h-11 rounded-lg text-xs font-bold transition-all",
-                        item.status === "cancelled" ? "bg-red-400 text-white shadow-lg shadow-red-100" : "bg-red-400/10 text-red-500 border border-red-400/20"
-                      )}
-                    >
-                      ไม่มี
-                    </button>
-                 </div>
-               </div>
-             ))}
+          <div className="space-y-3">
+            <div className="text-sm   text-slate-300 tracking-widest mb-1 px-1">Checklist • รายการสินค้า</div>
+            {managedItems.map((item) => (
+              <div key={item.id} className="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50/30 space-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-base  text-slate-900 leading-tight flex-1">{item.name}</span>
+                  <span className="text-sm  text-slate-400  shrink-0">{item.qty} {item.unit}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => updateManagedItemStatus(item.id!, "bought")}
+                    className={cn(
+                      "h-11 rounded-xl px-2 text-sm   tracking-tight transition-all border-2",
+                      item.status === "bought" ? "bg-emerald-500 border-emerald-500 text-white shadow-md shadow-emerald-500/20" : "bg-white border-slate-100 text-slate-500 active:bg-slate-50"
+                    )}
+                  >
+                    เรียบร้อย
+                  </button>
+                  <button
+                    onClick={() => updateManagedItemStatus(item.id!, "to_buy")}
+                    className={cn(
+                      "h-10 rounded-xl px-2 text-sm font-black  tracking-tight transition-all border-2",
+                      item.status === "to_buy" ? "bg-slate-200 border-slate-200 text-slate-700 shadow-md" : "bg-white border-slate-100 text-slate-200"
+                    )}
+                  >
+                    รอดำเนินการ
+                  </button>
+                  <button
+                    onClick={() => updateManagedItemStatus(item.id!, "cancelled")}
+                    className={cn(
+                      "h-10 rounded-xl px-2 text-sm font-black  tracking-tight transition-all border-2",
+                      item.status === "cancelled" ? "bg-red-500 border-red-500 text-white shadow-md shadow-red-500/20" : "bg-white border-slate-100 text-slate-200"
+                    )}
+                  >
+                    ยกเลิก
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* Note Section */}
-          <div className="space-y-3 pt-6 border-t border-gray-100">
-             <div className="flex items-center gap-2 text-gray-700 font-bold">
-                <FileText className="w-4 h-4" />
-                <span>บันทึก</span>
-             </div>
-             <textarea 
-               value={manageNote}
-               onChange={(e) => setManageNote(e.target.value)}
-               placeholder="ระบุหมายเหตุเพิ่มเติม..."
-               className="w-full h-32 bg-gray-50 border border-gray-100 rounded-2xl p-6 text-gray-600 focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none font-medium"
-             />
+          <div className="space-y-2 pt-4 border-t-2 border-slate-50">
+            <div className="flex items-center justify-between mb-1.5 px-1">
+              <Label className="text-sm   tracking-widest text-slate-500">บันทึกเพิ่มเติม (Note)</Label>
+              {manageNote && <span className="text-sm  text-primary">EDITING</span>}
+            </div>
+            <textarea
+              value={manageNote}
+              onChange={(e) => setManageNote(e.target.value)}
+              placeholder="ระบุรายละเอียดสำคัญ..."
+              className="w-full h-24 bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-sm  text-slate-900 focus:bg-white focus:border-blue-400 transition-all outline-none resize-none"
+            />
           </div>
 
-          {/* Save Button */}
-          <Button 
+          <button
             onClick={saveManagedItems}
             disabled={submitting}
-            className="w-full h-16 bg-gray-900 hover:bg-black text-white text-lg font-bold rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 mt-4"
+            className="w-full h-14 bg-slate-950 text-white text-[14px] font-black  tracking-[0.1em] rounded-xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl border-b-4 border-primary/20"
           >
-            {submitting ? <Loader2 className="animate-spin" /> : "เสร็จสิ้น"}
-          </Button>
+            {submitting ? <Loader2 className="animate-spin h-5 w-5" /> : <><Activity className="h-5 w-5 text-primary" /> ยืนยันรายการ</>}
+          </button>
         </div>
       </Modal>
     </div>

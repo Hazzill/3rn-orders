@@ -20,6 +20,8 @@ import { useOrders } from "@/hooks/useOrders";
 import { useSettings } from "@/hooks/useSettings";
 import { useRouter } from "next/navigation";
 
+import { Item } from "@/types";
+
 export default function NewOrderPage() {
   const router = useRouter();
   const { profile } = useLiff();
@@ -28,7 +30,7 @@ export default function NewOrderPage() {
 
   const [step, setStep] = useState(1);
   const [store, setStore] = useState("");
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<Item[]>([]);
   const [currentItem, setCurrentItem] = useState({
     name: "",
     qty: "",

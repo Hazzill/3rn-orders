@@ -15,6 +15,9 @@ import {
   Send,
   ShoppingCart,
   PackageCheck,
+  ShieldAlert,
+  Server,
+  Globe
 } from "lucide-react";
 import { Button, cn } from "@/components/ui/Button";
 import { Card, Input, Label, Select } from "@/components/ui/FormElements";
@@ -30,7 +33,6 @@ export default function SettingsPage() {
   const [newCat, setNewCat] = useState("");
   const [newUnit, setNewUnit] = useState("");
 
-  // Sync local state when remote data loads
   useEffect(() => {
     if (!loading) {
       setLocalSettings(settings);
@@ -106,311 +108,274 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-40 gap-4 opacity-50">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <span className="text-xs font-bold uppercase tracking-widest text-gray-500 animate-pulse">กำลังโหลดข้อมูลระบบ...</span>
+      <div className="flex flex-col items-center justify-center py-40 animate-pulse text-slate-300">
+        <Loader2 className="w-12 h-12 animate-spin mb-4" />
+        <span className="text-[11px] font-black uppercase tracking-widest">LOADING SYSTEM CONFIG...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex flex-col">
-          <h3 className="text-2xl font-bold text-gray-900 uppercase leading-none tracking-tight">
-            System Settings
-          </h3>
-          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-1">
-            จัดการข้อมูลพื้นฐานและตัวเลือกในระบบ (Firebase Realtime)
-          </span>
+    <div className="admin-page">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <div className="space-y-1.5">
+           <h1 className="text-[32px] font-black text-slate-950 tracking-tight leading-none uppercase">ตั้งค่าระบบ</h1>
+           <p className="text-[13px] font-bold text-slate-400 uppercase tracking-[0.2em] leading-none">Core System Parameters</p>
         </div>
         <Button 
           onClick={handleSave}
           disabled={saving}
-          className="rounded-xl h-11 px-6 text-xs bg-gray-900 text-white font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-primary hover:text-black transition-all"
+          className="h-12 px-8 rounded-xl bg-slate-950 text-white font-black uppercase text-[12px] tracking-widest flex items-center gap-3 hover:bg-primary hover:text-slate-950 transition-all shadow-lg active:scale-95"
         >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          SAVE CHANGES
+          {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5 text-primary" />}
+          บันทึกการตั้งค่า
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: General Info */}
-        <div className="lg:col-span-1 space-y-8">
-          <Card className="p-6 bg-white border border-gray-100 rounded-xl space-y-6">
-            <div className="flex items-center gap-3 pb-4 border-b border-gray-50">
-              <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500">
-                <Briefcase className="w-5 h-5" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Column: General Configuration */}
+        <div className="lg:col-span-4 space-y-6">
+          <Card className="p-6 bg-white border-2 border-slate-100 rounded-2xl space-y-6 shadow-sm">
+            <div className="flex items-center gap-3 pb-4 border-b-2 border-slate-50">
+              <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center">
+                <Briefcase className="h-5 w-5" />
               </div>
-              <h4 className="font-bold text-sm uppercase text-gray-900">เอกลักษณ์องค์กร</h4>
+              <div className="min-w-0">
+                 <h4 className="text-[13px] font-black uppercase text-slate-900 tracking-tight leading-none">เอกลักษณ์องค์กร</h4>
+                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.1em]">Identity Settings</span>
+              </div>
             </div>
             
             <div className="space-y-4">
-              <div className="space-y-1">
-                <Label>ชื่อระบบ (System Name)</Label>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">ชื่อระบบ (SYSTEM ID)</Label>
                 <Input 
                   value={localSettings.systemName} 
                   onChange={(e) => setLocalSettings({...localSettings, systemName: e.target.value})}
-                  className="bg-gray-50 border-none rounded-xl text-sm"
+                  className="h-12 border-2 border-slate-50 bg-slate-50/30 rounded-xl text-[14px] font-black text-slate-900 focus:bg-white focus:border-blue-400 transition-all font-sans"
                 />
               </div>
               
-              <div className="space-y-1">
-                <Label>ชื่อบริษัท (Company Name)</Label>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">ชื่อนิติบุคคล / บริษัท</Label>
                 <Input 
                   value={localSettings.companyName} 
                   onChange={(e) => setLocalSettings({...localSettings, companyName: e.target.value})}
-                  className="bg-gray-50 border-none rounded-xl text-sm"
+                  className="h-12 border-2 border-slate-50 bg-slate-50/30 rounded-xl text-[14px] font-black text-slate-900 focus:bg-white focus:border-blue-400 transition-all font-sans"
                 />
               </div>
             </div>
           </Card>
 
-          <Card className="p-6 bg-white border border-gray-100 rounded-xl space-y-6">
-            <div className="flex items-center gap-3 pb-4 border-b border-gray-50">
-              <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500">
-                <BellRing className="w-5 h-5" />
+          <Card className="p-6 bg-white border-2 border-slate-100 rounded-2xl space-y-6 shadow-sm">
+            <div className="flex items-center gap-3 pb-4 border-b-2 border-slate-50">
+              <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
+                <BellRing className="h-5 w-5" />
               </div>
-              <h4 className="font-bold text-sm uppercase text-gray-900">การแจ้งเตือน</h4>
+              <div className="min-w-0">
+                 <h4 className="text-[13px] font-black uppercase text-slate-900 tracking-tight leading-none">ฟีเจอร์หลัก</h4>
+                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.1em]">Core Engine</span>
+              </div>
             </div>
             
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100/50">
-                <span className="text-xs font-bold uppercase text-gray-700">แจ้งเตือนผ่าน Line</span>
-                <button 
-                  onClick={() => toggleOption('lineNotifyEnabled')}
-                  className={cn(
-                    "w-10 h-5 rounded-full relative transition-colors duration-200",
-                    localSettings.lineNotifyEnabled ? "bg-primary" : "bg-gray-200"
-                  )}
-                >
-                  <div className={cn(
-                    "absolute top-1 w-3 h-3 bg-white rounded-full shadow-sm transition-all duration-200",
-                    localSettings.lineNotifyEnabled ? "right-1" : "left-1"
-                  )} />
-                </button>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100/50">
-                <span className="text-xs font-bold uppercase text-gray-700">ระบบคัดกรองออเดอร์</span>
-                <button 
-                  onClick={() => toggleOption('orderFilteringEnabled')}
-                  className={cn(
-                    "w-10 h-5 rounded-full relative transition-colors duration-200",
-                    localSettings.orderFilteringEnabled ? "bg-primary" : "bg-gray-200"
-                  )}
-                >
-                  <div className={cn(
-                    "absolute top-1 w-3 h-3 bg-white rounded-full shadow-sm transition-all duration-200",
-                    localSettings.orderFilteringEnabled ? "right-1" : "left-1"
-                  )} />
-                </button>
-              </div>
-            </div>
-          </Card>
-
-          {/* LINE Notification Configuration */}
-          <Card className="p-6 bg-white border border-gray-100 rounded-xl space-y-6">
-            <div className="flex items-center gap-3 pb-4 border-b border-gray-50">
-              <div className="w-10 h-10 rounded-lg bg-[#06C755]/10 flex items-center justify-center text-[#06C755]">
-                <MessageSquare className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-sm uppercase text-gray-900">LINE กลุ่มแจ้งเตือน</h4>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">Group Notification</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <Label>LINE Group ID</Label>
-                <Input
-                  value={localSettings.lineGroupId || ""}
-                  onChange={(e) =>
-                    setLocalSettings({ ...localSettings, lineGroupId: e.target.value })
-                  }
-                  placeholder="Cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                  className="bg-gray-50 border-none rounded-xl text-sm font-mono"
-                />
-                <p className="text-[10px] text-gray-400 mt-1.5 leading-relaxed px-0.5">
-                  รับ Group ID ได้จาก Webhook event เมื่อเพิ่ม Bot เข้ากลุ่ม LINE
-                </p>
-              </div>
-
-              {/* Per-event toggles */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100/50">
-                  <div className="flex items-center gap-2.5">
-                    <ShoppingCart className="w-4 h-4 text-amber-500" />
-                    <span className="text-xs font-bold uppercase text-gray-700">เมื่อมีคำสั่งซื้อใหม่</span>
-                  </div>
-                  <button
-                    onClick={() => toggleOption("notifyOnNewOrder")}
-                    className={cn(
-                      "w-10 h-5 rounded-full relative transition-colors duration-200",
-                      localSettings.notifyOnNewOrder ? "bg-[#06C755]" : "bg-gray-200"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "absolute top-1 w-3 h-3 bg-white rounded-full shadow-sm transition-all duration-200",
-                        localSettings.notifyOnNewOrder ? "right-1" : "left-1"
-                      )}
-                    />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100/50">
-                  <div className="flex items-center gap-2.5">
-                    <PackageCheck className="w-4 h-4 text-emerald-500" />
-                    <span className="text-xs font-bold uppercase text-gray-700">เมื่อสั่งซื้อสำเร็จ</span>
-                  </div>
-                  <button
-                    onClick={() => toggleOption("notifyOnCompleted")}
-                    className={cn(
-                      "w-10 h-5 rounded-full relative transition-colors duration-200",
-                      localSettings.notifyOnCompleted ? "bg-[#06C755]" : "bg-gray-200"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "absolute top-1 w-3 h-3 bg-white rounded-full shadow-sm transition-all duration-200",
-                        localSettings.notifyOnCompleted ? "right-1" : "left-1"
-                      )}
-                    />
-                  </button>
-                </div>
-              </div>
-
-              {/* Test button */}
-              <button
-                onClick={handleTestNotification}
-                disabled={testSending || !localSettings.lineGroupId?.trim()}
-                className={cn(
-                  "flex w-full items-center justify-center gap-2.5 rounded-xl border px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all",
-                  localSettings.lineGroupId?.trim()
-                    ? "border-[#06C755] bg-[#06C755] text-white hover:bg-[#05b34c]"
-                    : "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
-                )}
-              >
-                {testSending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-                ทดสอบส่งข้อความ
-              </button>
-
-              {testResult && (
-                <div
-                  className={cn(
-                    "rounded-xl border px-4 py-3 text-xs font-bold",
-                    testResult.ok
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                      : "border-red-200 bg-red-50 text-red-600"
-                  )}
-                >
-                  {testResult.ok ? "✅ " : "❌ "}
-                  {testResult.msg}
-                </div>
-              )}
-            </div>
-          </Card>
-        </div>
-
-        {/* Right Column: Options / Lists */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Categories Management */}
-          <Card className="p-6 bg-white border border-gray-100 rounded-xl">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-50">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500">
-                  <Tag className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm uppercase text-gray-900">หมวดหมู่สินค้า</h4>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">Product Categories</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-2 mb-6">
-              <Input 
-                placeholder="เพิ่มหมวดหมู่ใหม่..." 
-                className="bg-gray-50 border-none rounded-xl"
-                value={newCat}
-                onChange={(e) => setNewCat(e.target.value)}
-              />
-              <Button 
-                onClick={() => addItem('categories', newCat, setNewCat)}
-                className="rounded-xl px-6 bg-gray-900 text-white font-bold h-11"
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {localSettings.categories.map((cat) => (
-                <div key={cat} className="group relative flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl hover:border-primary transition-all">
-                  <span className="text-xs font-bold text-gray-700">{cat}</span>
+            <div className="space-y-3">
+              {[
+                { id: 'lineNotifyEnabled', label: 'แจ้งเตือนอัตโนมัติ (LINE)' },
+                { id: 'orderFilteringEnabled', label: 'การคัดกรองออเดอร์แม่นยำ' }
+              ].map((opt) => (
+                <div key={opt.id} className="flex items-center justify-between p-4 bg-slate-50/50 rounded-xl border-2 border-slate-50">
+                  <span className="text-[12px] font-black uppercase text-slate-700 tracking-tight">{opt.label}</span>
                   <button 
-                    onClick={() => removeItem('categories', cat)}
-                    className="text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => toggleOption(opt.id as any)}
+                    className={cn(
+                      "w-11 h-6 rounded-full relative transition-all duration-300",
+                      localSettings[opt.id as keyof typeof localSettings] ? "bg-primary shadow-lg shadow-primary/20" : "bg-slate-200"
+                    )}
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <div className={cn(
+                      "absolute top-1 w-4 h-4 bg-white rounded-full shadow-md transition-all duration-300",
+                      localSettings[opt.id as keyof typeof localSettings] ? "left-6" : "left-1"
+                    )} />
                   </button>
                 </div>
               ))}
             </div>
           </Card>
 
-          {/* Units Management */}
-          <Card className="p-6 bg-white border border-gray-100 rounded-xl">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-50">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center text-green-500">
-                  <Box className="w-5 h-5" />
+          <Card className="p-6 bg-white border-2 border-slate-100 rounded-2xl space-y-6 shadow-sm overflow-hidden">
+             <div className="flex items-center gap-3 pb-4 border-b-2 border-slate-50">
+                <div className="h-10 w-10 rounded-xl bg-[#06C755]/10 text-[#06C755] flex items-center justify-center">
+                   <MessageSquare className="h-5 w-5" />
                 </div>
-                <div>
-                  <h4 className="font-bold text-sm uppercase text-gray-900">หน่วยนับ</h4>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">UOM Settings</p>
+                <div className="min-w-0">
+                   <h4 className="text-[13px] font-black uppercase text-slate-900 tracking-tight leading-none">LINE Group API</h4>
+                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.1em]">Group Notifications</span>
                 </div>
-              </div>
-            </div>
+             </div>
 
-            <div className="flex gap-2 mb-6">
-              <Input 
-                placeholder="เพิ่มหน่วยนับใหม่..." 
-                className="bg-gray-50 border-none rounded-xl"
-                value={newUnit}
-                onChange={(e) => setNewUnit(e.target.value)}
-              />
-              <Button 
-                onClick={() => addItem('units', newUnit, setNewUnit)}
-                className="rounded-xl px-6 bg-gray-900 text-white font-bold h-11"
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {localSettings.units.map((unit) => (
-                <div key={unit} className="group relative px-4 py-2 bg-gray-50 border border-transparent hover:border-green-100 hover:bg-green-50 rounded-lg flex items-center gap-2 transition-all">
-                  <span className="text-xs font-bold text-gray-700">{unit}</span>
-                  <button 
-                    onClick={() => removeItem('units', unit)}
-                    className="text-red-400 w-0 overflow-hidden group-hover:w-4 transition-all"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+             <div className="space-y-4">
+                <div className="space-y-1.5">
+                   <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">GROUP NOTIFY ID</Label>
+                   <Input
+                     value={localSettings.lineGroupId || ""}
+                     onChange={(e) => setLocalSettings({ ...localSettings, lineGroupId: e.target.value })}
+                     placeholder="Cxxxxxxxxxxxxxxxx..."
+                     className="h-12 border-2 border-slate-50 bg-slate-50/30 rounded-xl text-[12px] font-black text-slate-900 focus:bg-white focus:border-blue-400 transition-all font-mono"
+                   />
                 </div>
-              ))}
-            </div>
+
+                <div className="space-y-2">
+                   {[
+                      { id: 'notifyOnNewOrder', label: 'NEW ORDER RECEIVED', icon: ShoppingCart, color: 'text-amber-500' },
+                      { id: 'notifyOnCompleted', label: 'ORDER COMPLETED', icon: PackageCheck, color: 'text-emerald-500' }
+                   ].map((evt) => (
+                      <div key={evt.id} className="flex items-center justify-between p-3.5 bg-white rounded-xl border-2 border-slate-50 group hover:border-slate-100 transition-all">
+                         <div className="flex items-center gap-3">
+                            <evt.icon className={cn("h-4 w-4", evt.color)} />
+                            <span className="text-[10px] font-black uppercase text-slate-800 tracking-wider font-sans">{evt.label}</span>
+                         </div>
+                         <button
+                            onClick={() => toggleOption(evt.id as any)}
+                            className={cn(
+                               "h-4 w-8 rounded-full relative transition-all duration-300",
+                               localSettings[evt.id as keyof typeof localSettings] ? "bg-[#06C755]" : "bg-slate-200"
+                            )}
+                         >
+                            <div className={cn(
+                               "absolute top-0.5 w-3 h-3 bg-white rounded-full shadow-sm transition-all duration-300",
+                               localSettings[evt.id as keyof typeof localSettings] ? "left-4.5" : "left-0.5"
+                            )} />
+                         </button>
+                      </div>
+                   ))}
+                </div>
+
+                <div className="pt-2">
+                   <button
+                     onClick={handleTestNotification}
+                     disabled={testSending || !localSettings.lineGroupId?.trim()}
+                     className={cn(
+                       "flex w-full h-12 items-center justify-center gap-3 rounded-xl font-black uppercase text-[11px] tracking-widest transition-all active:scale-95",
+                       localSettings.lineGroupId?.trim()
+                         ? "bg-[#06C755] text-white shadow-lg shadow-[#06C755]/20 hover:brightness-110"
+                         : "bg-slate-100 text-slate-300 cursor-not-allowed"
+                     )}
+                   >
+                     {testSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                     TEST NOTIFICATION
+                   </button>
+                </div>
+                
+                {testResult && (
+                   <div className={cn("p-4 rounded-xl text-[10px] font-black uppercase bg-slate-50 text-center border-2", testResult.ok ? "border-emerald-100 text-emerald-600" : "border-red-100 text-red-500")}>
+                      {testResult.msg}
+                   </div>
+                )}
+             </div>
           </Card>
         </div>
-      </div>
 
-      <div className="flex items-center justify-center gap-2 px-2 text-gray-200">
-        <span className="text-xs font-bold uppercase tracking-[0.2em] opacity-30">Powertech Limited Order Management System v2.0.4</span>
+        {/* Center/Right Column: Master Data Tables */}
+        <div className="lg:col-span-8 space-y-8">
+           {/* Categories Management */}
+           <Card className="p-8 bg-white border-2 border-slate-100 rounded-3xl shadow-sm">
+              <div className="flex items-center justify-between mb-8">
+                 <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-100">
+                       <Tag className="h-6 w-6" />
+                    </div>
+                    <div>
+                       <h4 className="text-[18px] font-black uppercase text-slate-950 tracking-tight leading-none">คลังหมวดหมู่สินค้า</h4>
+                       <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1.5 block">Global Category Bank</span>
+                    </div>
+                 </div>
+              </div>
+
+              <div className="flex gap-2 max-w-md mb-8">
+                 <Input 
+                   placeholder="ระบุหมวดหมู่ใหม่..." 
+                   className="h-12 border-2 border-slate-100 bg-slate-50/30 rounded-xl text-[14px] font-black text-slate-900 focus:bg-white focus:border-blue-400 transition-all font-sans"
+                   value={newCat}
+                   onChange={(e) => setNewCat(e.target.value)}
+                 />
+                 <button 
+                   onClick={() => addItem('categories', newCat, setNewCat)}
+                   className="h-12 w-12 shrink-0 bg-slate-950 rounded-xl flex items-center justify-center text-primary shadow-xl hover:bg-black transition-all active:scale-95"
+                 >
+                   <Plus className="h-6 w-6" />
+                 </button>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                 {localSettings.categories.length === 0 && <div className="col-span-full py-12 text-center border-2 border-dashed border-slate-100 rounded-3xl text-[12px] font-black text-slate-300 uppercase tracking-widest italic">Bank is empty</div>}
+                 {localSettings.categories.map((cat) => (
+                   <div key={cat} className="group relative flex items-center justify-between p-4 bg-white border-2 border-slate-50 rounded-2xl hover:border-primary/50 hover:bg-slate-50/50 transition-all">
+                     <span className="text-[13px] font-black text-slate-700 uppercase tracking-tight">{cat}</span>
+                     <button 
+                       onClick={() => removeItem('categories', cat)}
+                       className="h-7 w-7 rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                     >
+                       <Trash2 className="h-3.5 w-3.5" />
+                     </button>
+                   </div>
+                 ))}
+              </div>
+           </Card>
+
+           {/* Units Management */}
+           <Card className="p-8 bg-white border-2 border-slate-100 rounded-3xl shadow-sm">
+              <div className="flex items-center justify-between mb-8">
+                 <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-100">
+                       <Box className="h-6 w-6" />
+                    </div>
+                    <div>
+                       <h4 className="text-[18px] font-black uppercase text-slate-950 tracking-tight leading-none">มาตราส่วน / หน่วยนับ</h4>
+                       <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1.5 block">Standard UoM Registry</span>
+                    </div>
+                 </div>
+              </div>
+
+              <div className="flex gap-2 max-w-md mb-8">
+                 <Input 
+                   placeholder="เช่น ลัง, กิโล, ม้วน..." 
+                   className="h-12 border-2 border-slate-100 bg-slate-50/30 rounded-xl text-[14px] font-black text-slate-900 focus:bg-white focus:border-blue-400 transition-all font-sans"
+                   value={newUnit}
+                   onChange={(e) => setNewUnit(e.target.value)}
+                 />
+                 <button 
+                   onClick={() => addItem('units', newUnit, setNewUnit)}
+                   className="h-12 w-12 shrink-0 bg-slate-950 rounded-xl flex items-center justify-center text-primary shadow-xl hover:bg-black transition-all active:scale-95"
+                 >
+                   <Plus className="h-6 w-6" />
+                 </button>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                 {localSettings.units.length === 0 && <div className="w-full py-12 text-center border-2 border-dashed border-slate-100 rounded-3xl text-[12px] font-black text-slate-300 uppercase tracking-widest italic">Registry is empty</div>}
+                 {localSettings.units.map((unit) => (
+                   <div key={unit} className="group relative px-6 py-3 bg-slate-50/80 border-2 border-transparent hover:border-primary/30 hover:bg-white rounded-2xl flex items-center gap-3 transition-all">
+                     <span className="text-[14px] font-black text-slate-700 uppercase tracking-widest">{unit}</span>
+                     <button 
+                       onClick={() => removeItem('units', unit)}
+                       className="h-6 w-0 flex items-center justify-center text-red-400 overflow-hidden group-hover:w-6 transition-all"
+                     >
+                       <Trash2 className="h-4 w-4" />
+                     </button>
+                   </div>
+                 ))}
+              </div>
+           </Card>
+           
+           <div className="pt-10 flex flex-col items-center justify-center opacity-20">
+              <div className="flex items-center gap-6 mb-4">
+                 <Server className="h-5 w-5" />
+                 <Globe className="h-5 w-5" />
+                 <ShieldAlert className="h-5 w-5" />
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-900">Enterprise Asset Management Framework v2.9.2</p>
+           </div>
+        </div>
       </div>
     </div>
   );
