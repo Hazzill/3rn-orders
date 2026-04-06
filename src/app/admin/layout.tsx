@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/components/ui/Button";
+import { useBuyerAuth } from "@/context/BuyerContext";
 
 const navigation = [
   { name: "ภาพรวมระบบ", icon: LayoutDashboard, href: "/admin", label: "ภาพรวม" },
@@ -34,18 +35,17 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { buyer, logout } = useBuyerAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div className="admin-ui flex min-h-screen bg-[#eef2f6] text-slate-900">
-      {isMobileMenuOpen ? (
-        <button
-          type="button"
-          aria-label="ปิดเมนู"
+      {isMobileMenuOpen && (
+        <div
           className="fixed inset-0 z-40 bg-slate-950/35 lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
-      ) : null}
+      )}
 
       <aside
         className={cn(
@@ -75,8 +75,8 @@ export default function AdminLayout({
         <div className="border-b border-slate-200 px-5 py-4">
           <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
             <div className="text-xs text-slate-500">ผู้ดูแลระบบ</div>
-            <div className="mt-1 text-sm font-semibold text-slate-950">Administrator</div>
-            <div className="mt-1 text-xs text-slate-500">สิทธิ์ดูแลเต็มระบบ</div>
+            <div className="mt-1 text-sm font-semibold text-slate-950">{buyer?.name || "Administrator"}</div>
+            <div className="mt-1 text-xs text-slate-500">สิทธิ์ {buyer?.role === "admin" ? "ดูแลเต็มระบบ" : "ไม่รองรับ"}</div>
           </div>
         </div>
 
@@ -137,6 +137,7 @@ export default function AdminLayout({
           </Link>
           <button
             type="button"
+            onClick={logout}
             className="flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-3 text-sm text-red-600 transition-colors hover:border-red-200 hover:bg-red-50"
           >
             <LogOut className="h-4 w-4" />
@@ -160,6 +161,14 @@ export default function AdminLayout({
               <div className="text-sm font-semibold text-slate-950">MAN-ORDER</div>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={logout}
+            className="flex h-9 items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-3 text-xs font-bold text-red-600 transition-colors active:scale-95 transition-all"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            <span>ออกจากระบบ</span>
+          </button>
         </header>
 
         <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8">

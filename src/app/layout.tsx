@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Sarabun } from "next/font/google";
 import "./globals.css";
 import { LiffProvider } from "@/lib/liff";
+import { BuyerProvider } from "@/context/BuyerContext";
 
 const sarabun = Sarabun({
   subsets: ["thai", "latin"],
@@ -22,9 +23,11 @@ export default function RootLayout({
       <body className={`${sarabun.className} text-gray-900`}>
         <div className="app-shell min-h-screen">
           <LiffProvider liffId={liffId}>
-            <main className="relative mx-auto min-h-screen">
-              {children}
-            </main>
+            <BuyerProvider>
+              <main className="relative mx-auto min-h-screen">
+                {children}
+              </main>
+            </BuyerProvider>
           </LiffProvider>
         </div>
       </body>

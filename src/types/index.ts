@@ -32,6 +32,7 @@ export interface Order {
   createdAt: Date | any;
   updatedAt: Date | any;
   buyerId?: string;
+  buyerName?: string;
   note?: string;
 }
 

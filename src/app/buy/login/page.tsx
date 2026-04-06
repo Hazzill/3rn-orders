@@ -42,7 +42,12 @@ export default function BuyerLoginPage() {
       const foundStaff = await findStaffByLineUserId(lineUserId);
       if (foundStaff) {
         loginWithStaff(foundStaff);
-        router.push("/buy");
+        const role = foundStaff.role?.toLowerCase().trim() || "";
+        const isAdmin = role === "admin" || role === "แอดมิน" || role === "administrator";
+        const isBuyer = role === "buyer" || role === "staff" || role === "พนักงานจัดซื้อ" || role === "จัดซื้อ" || role === "order";
+        if (isAdmin) router.push("/admin");
+        else if (isBuyer) router.push("/order");
+        else router.push("/buy");
       }
     } catch (err) {
       console.error("Auto LINE login failed:", err);
@@ -60,9 +65,14 @@ export default function BuyerLoginPage() {
       return;
     }
 
-    const success = login(username, staff);
-    if (success) {
-      router.push("/buy");
+    const user = login(username, staff);
+    if (user) {
+      const role = user.role?.toLowerCase().trim() || "";
+      const isAdmin = role === "admin" || role === "แอดมิน" || role === "administrator";
+      const isBuyer = role === "buyer" || role === "staff" || role === "พนักงานจัดซื้อ" || role === "จัดซื้อ" || role === "order";
+      if (isAdmin) router.push("/admin");
+      else if (isBuyer) router.push("/order");
+      else router.push("/buy");
     } else {
       setError("ไม่พบข้อมูลผู้ใช้นี้ในระบบ");
     }
@@ -121,7 +131,10 @@ export default function BuyerLoginPage() {
       // Auto login after short delay
       setTimeout(() => {
         loginWithStaff(linkedStaff);
-        router.push("/buy");
+        const role = linkedStaff.role?.toLowerCase().trim() || "";
+        if (role === "admin") router.push("/admin");
+        else if (role === "buyer") router.push("/order");
+        else router.push("/buy");
       }, 1500);
     } catch (err) {
       console.error("Phone linking failed:", err);

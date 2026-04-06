@@ -61,6 +61,7 @@ export default function OrderSupportPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedOrder, setEditedOrder] = useState<Order | null>(null);
   const [noteText, setNoteText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<"active" | "history">("active");
   const router = useRouter();
 
@@ -83,7 +84,7 @@ export default function OrderSupportPage() {
     itemIndex: number,
     newStatus: Item["status"],
   ) => {
-    if (!selectedOrder) return;
+    if (!selectedOrder || !buyer) return;
 
     if (isEditing) return; // Prevent status updates while editing items
 
@@ -117,9 +118,17 @@ export default function OrderSupportPage() {
         const hasStartedBuying = newItems.some(isProcessed);
 
         if (hasBoughtAll && selectedOrder.status !== "sorting" && selectedOrder.status !== "completed") {
-          await updateOrderStatus(selectedOrder.id, "sorting");
+          await updateOrder(selectedOrder.id, { 
+            status: "sorting", 
+            buyerId: buyer?.id,
+            buyerName: buyer?.name
+          });
         } else if (hasStartedBuying && selectedOrder.status === "pending") {
-          await updateOrderStatus(selectedOrder.id, "buying");
+          await updateOrder(selectedOrder.id, { 
+            status: "buying", 
+            buyerId: buyer?.id,
+            buyerName: buyer?.name
+          });
         }
       } catch (err) {
         console.error("Failed to update status:", err);
@@ -558,8 +567,14 @@ export default function OrderSupportPage() {
               <Button
                 disabled={isEditing}
                 onClick={async () => {
-                  await updateOrderStatus(selectedOrder.id, "completed");
+                  setSubmitting(true);
                   try {
+                    await updateOrder(selectedOrder.id, { 
+                      status: "completed",
+                      buyerId: buyer?.id,
+                      buyerName: buyer?.name
+                    });
+                    
                     const items = selectedOrder.items || [];
                     const msg = buildCompletedOrderMessage({
                       storeName: selectedOrder.storeName || "",
@@ -574,12 +589,14 @@ export default function OrderSupportPage() {
                     await sendLineGroupNotification("completed", msg);
                   } catch (notifyErr) {
                     console.error("LINE notification error:", notifyErr);
+                  } finally {
+                    setSubmitting(false);
+                    setSelectedOrder(null);
                   }
-                  setSelectedOrder(null);
                 }}
                 className="flex-[1.5] h-12 rounded-xl text-sm font-black shadow-lg shadow-slate-950/10"
               >
-                บันทึกและปิดงาน
+                {submitting ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "บันทึกและปิดงาน"}
               </Button>
             </div>
           </div>

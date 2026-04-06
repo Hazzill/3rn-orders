@@ -247,13 +247,14 @@ export default function OrdersPage() {
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      {order.buyerId ? (
+                      {order.buyerId || order.buyerName ? (
                         <div className="flex items-center gap-2">
                           <div className="h-6 w-6 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[8px] font-bold text-emerald-600">
-                            {staff.find(s => s.id === order.buyerId)?.name.substring(0, 2).toUpperCase() || "??"}
+                             {order.buyerName?.substring(0, 2).toUpperCase() || 
+                              staff.find(s => s.id === order.buyerId)?.name.substring(0, 2).toUpperCase() || "??"}
                           </div>
                           <span className="text-[12px] font-medium text-slate-600">
-                            {staff.find(s => s.id === order.buyerId)?.name || "—"}
+                            {order.buyerName || staff.find(s => s.id === order.buyerId)?.name || "—"}
                           </span>
                         </div>
                       ) : (
