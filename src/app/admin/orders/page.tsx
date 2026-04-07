@@ -174,7 +174,7 @@ export default function OrdersPage() {
   if (settingsLoading) {
     return <div className="flex flex-col items-center justify-center py-40 animate-pulse text-slate-300">
       <Loader2 className="h-12 w-12 animate-spin mb-4" />
-      <span className="text-sm   tracking-widest">กำลังดึงข้อมูลมาให้ช้าๆ...</span>
+      <span className="text-sm">กำลังดึงข้อมูลมาให้ช้าๆ...</span>
     </div>;
   }
 
@@ -277,19 +277,17 @@ export default function OrdersPage() {
                         </td>
                         <td>
                           <div className="flex items-center gap-2.5">
-                            <div className="h-8 w-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600">
+                            <div className="h-8 w-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-sm font-bold text-indigo-600">
                               {order.requesterName?.substring(0, 2).toUpperCase()}
                             </div>
                             <div className="flex flex-col">
-                              <span className="text-sm font-black text-slate-900 leading-tight">{order.requesterName}</span>
-                              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-0.5">พนักงานสั่ง</span>
+                              <span className="text-sm  text-slate-900 leading-tight">{order.requesterName}</span>
                             </div>
                           </div>
                         </td>
                         <td>
                           <div className="flex flex-col">
-                            <span className="text-sm font-black text-slate-900 leading-tight">{order.storeName || "ทั่วไป"}</span>
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-0.5">ร้านค้าคู่ค้า</span>
+                            <span className="text-sm  text-slate-900 leading-tight">{order.storeName || "ทั่วไป"}</span>
                           </div>
                         </td>
                         <td>
@@ -303,7 +301,7 @@ export default function OrdersPage() {
                               </span>
                             </div>
                           ) : (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black bg-slate-100 text-slate-600 uppercase tracking-tighter">
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-sm  bg-slate-100 text-slate-600 uppercase tracking-tighter">
                               ไม่มีผู้ซื้อ
                             </span>
                           )}
@@ -318,10 +316,10 @@ export default function OrdersPage() {
                         </td>
                         <td className="text-right">
                           <div className="space-y-1">
-                            <div className="text-sm font-black text-slate-900">
+                            <div className="text-sm  text-slate-900">
                               {order.createdAt ? format(order.createdAt.toDate(), "HH:mm", { locale: th }) : "—"}
                             </div>
-                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                            <div className="text-sm  text-slate-500 upperca">
                               {order.createdAt ? format(order.createdAt.toDate(), "dd MMM yy", { locale: th }) : "—"}
                             </div>
                           </div>
@@ -376,8 +374,8 @@ export default function OrdersPage() {
 
             <div className="pt-4 mt-4 border-t-2 border-slate-100 space-y-3">
               <div className="flex items-center justify-between px-0.5">
-                <Label className="text-[10px] font-black tracking-widest text-slate-900 uppercase">รายการสินค้า • ITEMS</Label>
-                <span className="text-[10px] font-black text-blue-600">{(formData.items || []).length} SELECTED</span>
+                <Label className="text-sm font-bla text-slate-900 uppercase">รายการสินค้า • ITEMS</Label>
+                <span className="text-sm  text-blue-600">{(formData.items || []).length} SELECTED</span>
               </div>
 
               <div className="flex gap-1.5">
@@ -390,12 +388,12 @@ export default function OrdersPage() {
               </div>
 
               <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1 flex flex-col pt-1 custom-scrollbar">
-                {(formData.items || []).length === 0 && <div className="text-center py-6 rounded-xl border-2 border-dashed border-slate-200 text-xs font-black text-slate-400 uppercase tracking-widest">เพิ่มสินค้าอย่างน้อย 1 รายการ</div>}
+                {(formData.items || []).length === 0 && <div className="text-center py-6 rounded-xl border-2 border-dashed border-slate-200 text-xs  text-slate-400 upperca">เพิ่มสินค้าอย่างน้อย 1 รายการ</div>}
                 {(formData.items || []).map((item: Item) => (
                   <div key={item.id} className="flex items-center justify-between p-2.5 rounded-lg border-2 border-slate-100 group transition-all bg-white hover:border-slate-200">
                     <div className="flex flex-col">
-                      <span className="text-sm font-black text-slate-900 leading-tight">{item.name}</span>
-                      <span className="text-[10px] font-black text-slate-600 uppercase tracking-wider mt-0.5">{item.qty} {item.unit}</span>
+                      <span className="text-sm  text-slate-900 leading-tight">{item.name}</span>
+                      <span className="text-sm  text-slate-600 uppercase tracking-wider mt-0.5">{item.qty} {item.unit}</span>
                     </div>
                     <AdminSecondaryButton onClick={() => handleRemoveItem(item.id)} icon={Trash2} className="h-7 w-7 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50 border-none" />
                   </div>
@@ -406,7 +404,7 @@ export default function OrdersPage() {
 
           <div className="flex gap-2 pt-4 border-t-2 border-slate-100">
             <AdminSecondaryButton className="flex-1 font-bold h-10 text-xs text-slate-700" onClick={() => setIsModalOpen(false)}>ยกเลิก</AdminSecondaryButton>
-            <AdminPrimaryButton submitting={submitting} icon={CheckCircle2} className="flex-[2] font-black h-10 text-xs">
+            <AdminPrimaryButton submitting={submitting} icon={CheckCircle2} className="flex-[2]  h-10 text-xs">
               {isEditing ? "อัปเดตบิล" : "สร้างออร์เดอร์"}
             </AdminPrimaryButton>
           </div>
@@ -425,26 +423,26 @@ export default function OrdersPage() {
               <Store className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-sm font-black text-slate-900 leading-tight truncate">{managingOrder?.storeName || "ทั่วไป"}</div>
-              <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
+              <div className="text-sm  text-slate-900 leading-tight truncate">{managingOrder?.storeName || "ทั่วไป"}</div>
+              <div className="text-sm  text-slate-600 flex items-center gap-1.5 mt-0.5">
                 <User className="h-3 w-3" />
                 ผู้ขอ: {managingOrder?.requesterName}
               </div>
             </div>
           </div>
           <div className="space-y-2">
-            <div className="text-[10px] font-black text-slate-900 tracking-widest uppercase px-1">Checklist • รายการสินค้า</div>
+            <div className="text-sm  text-slate-9 uppercase px-1">Checklist • รายการสินค้า</div>
             {managedItems.map((item) => (
               <div key={item.id} className="p-3 rounded-xl border-2 border-slate-100 bg-white space-y-3 shadow-sm">
                 <div className="flex items-center justify-between gap-4 px-1">
                   <span className="text-sm font-bold text-slate-900 flex-1">{item.name}</span>
-                  <span className="text-xs font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md shrink-0">{item.qty} {item.unit}</span>
+                  <span className="text-xs  text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md shrink-0">{item.qty} {item.unit}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-1.5">
                   <button
                     onClick={() => updateManagedItemStatus(item.id!, "bought")}
                     className={cn(
-                      "h-9 rounded-lg px-2 text-[10px] font-black uppercase tracking-tighter transition-all border-2",
+                      "h-9 rounded-lg px-2 text-sm  uppercase tracking-tighter transition-all border-2",
                       item.status === "bought" ? "bg-emerald-600 border-emerald-600 text-white" : "bg-white border-slate-100 text-slate-400"
                     )}
                   >
@@ -453,7 +451,7 @@ export default function OrdersPage() {
                   <button
                     onClick={() => updateManagedItemStatus(item.id!, "to_buy")}
                     className={cn(
-                      "h-9 rounded-lg px-2 text-[10px] font-black uppercase tracking-tighter transition-all border-2",
+                      "h-9 rounded-lg px-2 text-sm  uppercase tracking-tighter transition-all border-2",
                       item.status === "to_buy" ? "bg-slate-800 border-slate-800 text-white" : "bg-white border-slate-100 text-slate-400"
                     )}
                   >
@@ -462,7 +460,7 @@ export default function OrdersPage() {
                   <button
                     onClick={() => updateManagedItemStatus(item.id!, "cancelled")}
                     className={cn(
-                      "h-9 rounded-lg px-2 text-[10px] font-black uppercase tracking-tighter transition-all border-2",
+                      "h-9 rounded-lg px-2 text-sm  uppercase tracking-tighter transition-all border-2",
                       item.status === "cancelled" ? "bg-red-600 border-red-600 text-white" : "bg-white border-slate-100 text-slate-400"
                     )}
                   >
@@ -475,8 +473,8 @@ export default function OrdersPage() {
 
           <div className="space-y-1.5 pt-3 border-t-2 border-slate-100">
             <div className="flex items-center justify-between px-1">
-              <Label className="text-[10px] font-black tracking-widest text-slate-900 uppercase">บันทึกเพิ่มเติม</Label>
-              {manageNote && <span className="text-[9px] font-black text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">Modified</span>}
+              <Label className="text-sm font-bla text-slate-900 uppercase">บันทึกเพิ่มเติม</Label>
+              {manageNote && <span className="text-[9px]  text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">Modified</span>}
             </div>
             <textarea
               value={manageNote}
@@ -490,7 +488,7 @@ export default function OrdersPage() {
             onClick={saveManagedItems}
             submitting={submitting}
             icon={Activity}
-            className="w-full h-11 font-black text-sm"
+            className="w-full h-11  text-sm"
           >
             บันทึกสถานะจัดซื้อ
           </AdminPrimaryButton>

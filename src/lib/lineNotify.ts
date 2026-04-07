@@ -69,6 +69,8 @@ export function buildNewOrderMessage(data: {
   requesterName: string;
   storeName: string;
   itemCount: number;
+  location?: string;
+  note?: string;
   mapUrl?: string;
   items?: { name: string; qty: number; unit: string }[];
 }): any {
@@ -81,7 +83,6 @@ export function buildNewOrderMessage(data: {
     altText: `แจ้งเตือนคำสั่งซื้อจาก: ${data.requesterName}`,
     contents: {
       type: "bubble",
-      size: "medium",
       body: {
         type: "box",
         layout: "vertical",
@@ -93,7 +94,6 @@ export function buildNewOrderMessage(data: {
             weight: "bold",
             color: "#2563EB",
             size: "xs",
-            letterSpacing: "0.1em",
           },
           {
             type: "text",
@@ -129,6 +129,15 @@ export function buildNewOrderMessage(data: {
                 layout: "baseline",
                 spacing: "md",
                 contents: [
+                  { type: "text", text: "จุดรับของ", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
+                  { type: "text", text: data.location || "-", color: "#1E293B", size: "sm", flex: 7, wrap: true }
+                ]
+              },
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "md",
+                contents: [
                   { type: "text", text: "รายการ", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
                   { type: "text", text: itemList, color: "#1E293B", size: "sm", flex: 7, wrap: true }
                 ]
@@ -146,6 +155,35 @@ export function buildNewOrderMessage(data: {
       },
     },
   };
+
+  if (data.note) {
+    flex.contents.body.contents[3].contents.push({
+      type: "box",
+      layout: "vertical",
+      margin: "md",
+      paddingAll: "md",
+      backgroundColor: "#F8FAFC",
+      cornerRadius: "md",
+      contents: [
+        {
+          type: "text",
+          text: "หมายเหตุ:",
+          size: "xxs",
+          color: "#94A3B8",
+          weight: "bold",
+          margin: "none"
+        },
+        {
+          type: "text",
+          text: data.note,
+          size: "xs",
+          color: "#475569",
+          wrap: true,
+          margin: "xs"
+        }
+      ]
+    });
+  }
 
   if (data.mapUrl) {
     flex.contents.footer.contents.push({
@@ -184,17 +222,21 @@ export function buildCompletedOrderMessage(data: {
   itemCount: number;
   boughtCount: number;
   cancelledCount: number;
+  location?: string;
   mapUrl?: string;
   completedBy?: string;
+  items?: { name: string; qty: number; unit: string; status: string }[];
 }): any {
-  const resultText = `ซื้อแล้ว ${data.boughtCount} จาก ${data.itemCount} รายการ`;
+  const resultSummary = `ซื้อแล้ว ${data.boughtCount} จาก ${data.itemCount} รายการ`;
+  
+  const boughtItems = data.items?.filter(i => i.status === 'bought') || [];
+  const missingItems = data.items?.filter(i => i.status === 'cancelled' || i.status === 'out_of_stock') || [];
 
   const flex: any = {
     type: "flex",
     altText: `ดำเนินการเสร็จสิ้น: ${data.storeName}`,
     contents: {
       type: "bubble",
-      size: "medium",
       body: {
         type: "box",
         layout: "vertical",
@@ -206,7 +248,6 @@ export function buildCompletedOrderMessage(data: {
             weight: "bold",
             color: "#10B981",
             size: "xs",
-            letterSpacing: "0.1em",
           },
           {
             type: "text",
@@ -233,29 +274,29 @@ export function buildCompletedOrderMessage(data: {
                 layout: "baseline",
                 spacing: "md",
                 contents: [
-                  { type: "text", text: "สรุปรายการ", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
-                  { type: "text", text: resultText, weight: "bold", color: "#1E293B", size: "sm", flex: 7, wrap: true }
+                  { type: "text", text: "จุดรับของ", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
+                  { type: "text", text: data.location || "-", color: "#1E293B", size: "sm", flex: 7, wrap: true }
                 ]
               },
-              data.cancelledCount > 0 ? {
-                type: "box",
-                layout: "baseline",
-                spacing: "md",
-                contents: [
-                  { type: "text", text: "ยกเลิก/ขาด", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
-                  { type: "text", text: `${data.cancelledCount} รายการ`, color: "#EF4444", size: "sm", flex: 7 }
-                ]
-              } : null,
               {
                 type: "box",
                 layout: "baseline",
                 spacing: "md",
                 contents: [
-                  { type: "text", text: "ผู้ซื้อสินค้า", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
+                  { type: "text", text: "สรุป", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
+                  { type: "text", text: resultSummary, weight: "bold", color: "#1E293B", size: "sm", flex: 7, wrap: true }
+                ]
+              },
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "md",
+                contents: [
+                  { type: "text", text: "ผู้ซื้อ", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
                   { type: "text", text: data.completedBy || "-", color: "#1E293B", size: "sm", flex: 7 }
                 ]
               }
-            ].filter(Boolean) as any[]
+            ]
           }
         ],
       },
@@ -268,6 +309,67 @@ export function buildCompletedOrderMessage(data: {
       }
     }
   };
+
+  // Add Separator before items
+  flex.contents.body.contents.push({
+    type: "separator",
+    margin: "xl",
+    color: "#F1F5F9"
+  });
+
+  // Add Bought Items Section
+  if (boughtItems.length > 0) {
+    flex.contents.body.contents.push({
+      type: "box",
+      layout: "vertical",
+      margin: "md",
+      contents: [
+        {
+          type: "text",
+          text: "✅ รายการที่ซื้อได้",
+          size: "xs",
+          color: "#059669",
+          weight: "bold",
+          margin: "sm"
+        },
+        {
+          type: "text",
+          text: boughtItems.map(i => `• ${i.name} ${i.qty} ${i.unit}`).join("\n"),
+          size: "xs",
+          color: "#475569",
+          wrap: true,
+          margin: "xs"
+        }
+      ]
+    });
+  }
+
+  // Add Missing Items Section
+  if (missingItems.length > 0) {
+    flex.contents.body.contents.push({
+      type: "box",
+      layout: "vertical",
+      margin: "md",
+      contents: [
+        {
+          type: "text",
+          text: "❌ รายการที่ซื้อไม่ได้",
+          size: "xs",
+          color: "#DC2626",
+          weight: "bold",
+          margin: "sm"
+        },
+        {
+          type: "text",
+          text: missingItems.map(i => `• ${i.name} ${i.qty} ${i.unit}`).join("\n"),
+          size: "xs",
+          color: "#94A3B8",
+          wrap: true,
+          margin: "xs"
+        }
+      ]
+    });
+  }
 
   if (data.mapUrl) {
     flex.contents.footer.contents.push({

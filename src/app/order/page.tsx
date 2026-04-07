@@ -578,6 +578,7 @@ export default function OrderSupportPage() {
                     const items = selectedOrder.items || [];
                     const msg = buildCompletedOrderMessage({
                       storeName: selectedOrder.storeName || "",
+                      location: selectedOrder.location || "",
                       mapUrl: selectedOrder.mapUrl || "",
                       itemCount: items.length,
                       boughtCount: items.filter((i) => i.status === "bought").length,
@@ -585,6 +586,12 @@ export default function OrderSupportPage() {
                         (i) => i.status === "cancelled" || i.status === "out_of_stock"
                       ).length,
                       completedBy: buyer?.name,
+                      items: items.map(i => ({
+                        name: i.name,
+                        qty: i.qty,
+                        unit: i.unit,
+                        status: i.status
+                      }))
                     });
                     await sendLineGroupNotification("completed", msg);
                   } catch (notifyErr) {

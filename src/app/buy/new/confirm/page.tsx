@@ -87,6 +87,8 @@ export default function SummaryPage() {
         const msg = buildNewOrderMessage({
           requesterName: buyer.name,
           storeName: orderData.storeName || "",
+          location: orderData.location || "",
+          note: orderData.note || "",
           mapUrl: orderData.mapUrl || "",
           itemCount: orderData.items.length,
           items: orderData.items.map((i) => ({
