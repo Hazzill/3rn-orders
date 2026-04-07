@@ -8,6 +8,7 @@ const LiffContext = createContext<{
   login: () => void;
   logout: () => void;
   loading: boolean;
+  error: string | null;
 }>({
   liff: null,
   profile: null,
@@ -15,27 +16,30 @@ const LiffContext = createContext<{
   login: () => {},
   logout: () => {},
   loading: true,
+  error: null,
 });
 
 export function LiffProvider({ children, liffId }: { children: React.ReactNode, liffId: string }) {
   const [liff, setLiff] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const initLiff = async () => {
       try {
         const liffModule = await import("@line/liff");
-        const liff = liffModule.default;
-        await liff.init({ liffId });
-        setLiff(liff);
-        if (liff.isLoggedIn()) {
-          const userProfile = await liff.getProfile();
+        const liffValue = liffModule.default;
+        await liffValue.init({ liffId });
+        setLiff(liffValue);
+        if (liffValue.isLoggedIn()) {
+          const userProfile = await liffValue.getProfile();
           setProfile(userProfile);
         }
         setLoading(false);
-      } catch (error) {
-        console.error("LIFF initialization failed", error);
+      } catch (err: any) {
+        console.error("LIFF initialization failed", err);
+        setError(err?.message || "LIFF initialization failed");
         setLoading(false);
       }
     };
@@ -51,7 +55,7 @@ export function LiffProvider({ children, liffId }: { children: React.ReactNode, 
   };
 
   return (
-    <LiffContext.Provider value={{ liff, profile, isLoggedIn: !!profile, login, logout, loading }}>
+    <LiffContext.Provider value={{ liff, profile, isLoggedIn: !!profile, login, logout, loading, error }}>
       {children}
     </LiffContext.Provider>
   );
