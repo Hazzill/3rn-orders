@@ -8,6 +8,7 @@ import {
   addDoc,
   updateDoc,
   doc,
+  deleteDoc,
   serverTimestamp,
   where,
   limit,
@@ -98,6 +99,15 @@ export function useOrders(filterRole?: "orderer" | "buyer", userId?: string, que
       throw error;
     }
   };
+  const deleteOrder = async (orderId: string) => {
+    try {
+      const orderRef = doc(db, "orders", orderId);
+      await deleteDoc(orderRef);
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      throw error;
+    }
+  };
   return {
     orders,
     loading,
@@ -105,5 +115,6 @@ export function useOrders(filterRole?: "orderer" | "buyer", userId?: string, que
     updateOrderStatus,
     updateItemStatus,
     updateOrder,
+    deleteOrder,
   };
 }

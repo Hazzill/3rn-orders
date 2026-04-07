@@ -1,8 +1,18 @@
 "use client";
 import React, { useState } from "react";
-import { Store, MapPin, MoreVertical, Phone, ShoppingCart, Plus, Loader2, Trash2, Edit2, ExternalLink, Building2, Search, CheckCircle2 } from "lucide-react";
-import { Button, cn } from "@/components/ui/Button";
-import { Card, Input, Label, Select } from "@/components/ui/FormElements";
+import { 
+  AdminEmptyState,
+  AdminHeader,
+  AdminPage,
+  AdminPanel,
+  AdminPrimaryButton,
+  AdminSecondaryButton,
+  AdminStatCard,
+  AdminStatGrid,
+} from "@/components/admin/AdminUI";
+import { Store, MapPin, Phone, ShoppingCart, Plus, Loader2, Trash2, Edit2, ExternalLink, Building2, Search, CheckCircle2 } from "lucide-react";
+import { cn } from "@/components/ui/Button";
+import { Input, Label, Select } from "@/components/ui/FormElements";
 import { Modal } from "@/components/ui/Modal";
 import { useStores } from "@/hooks/useStores";
 import { useSettings } from "@/hooks/useSettings";
@@ -15,6 +25,7 @@ export default function StoresPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [currentId, setCurrentId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [formData, setFormData] = useState<Omit<NetworkStore, "id">>({
     name: "",
@@ -25,12 +36,10 @@ export default function StoresPage() {
     orders: 0,
   });
 
-  const storeStats = [
-    { label: "TOTAL STORES", value: stores.length, icon: Building2, color: "text-slate-400", bg: "bg-slate-50" },
-    { label: "CATAGORIES", value: settings.categories.length, icon: Store, color: "text-blue-500", bg: "bg-blue-50" },
-    { label: "TOTAL ORDERS", value: stores.reduce((a, b) => a + (b.orders || 0), 0), icon: ShoppingCart, color: "text-emerald-500", bg: "bg-emerald-50" },
-    { label: "ACTIVE", value: stores.filter(s => (s.orders || 0) > 0).length, icon: ExternalLink, color: "text-amber-500", bg: "bg-amber-50" },
-  ];
+  const filteredStores = stores.filter(s => 
+    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.location.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleOpenAdd = () => {
     setFormData({
@@ -81,155 +90,175 @@ export default function StoresPage() {
       try {
         await deleteStore(id);
       } catch (err) {
-        alert("ไม่สามารถลบข้อมูลได้");
+        alert("เกิดข้อผิดพลาดในการลบข้อมูล");
       }
     }
   };
 
   return (
-    <div className="admin-page">
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-        <div className="space-y-1">
-           <h1 className="text-3xl font-bold text-slate-950 tracking-tight leading-none uppercase">รายชื่อร้านค้า</h1>
-           <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-none">Network Partner Directory</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-            <Input
-              placeholder="ค้นหาร้านค้า..."
-              className="pl-11 h-12 bg-white border-2 border-slate-100 rounded-xl w-64 text-sm font-bold shadow-sm focus:border-blue-400 transition-all font-sans"
-            />
-          </div>
-          <Button
-            onClick={handleOpenAdd}
-            className="h-11 px-6 rounded-xl bg-slate-950 text-white font-bold uppercase text-xs tracking-widest flex items-center gap-2 shadow-sm"
-          >
-            <Plus className="w-4 h-4" /> เพิ่มพาร์ทเนอร์
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {storeStats.map((stat, i) => (
-          <div key={i} className="group relative overflow-hidden rounded-xl border-2 border-slate-100 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", stat.bg, stat.color)}>
-                <stat.icon className="h-5 w-5" />
+    <>
+      <AdminPage>
+        <AdminHeader
+          title="รายชื่อร้านค้าพาร์ทเนอร์"
+          subtitle="จัดการข้อมูลและช่องทางการสั่งซื้อของร้านค้าคู่ค้าทั้งหมด"
+          actions={
+            <div className="flex items-center gap-3">
+              <div className="relative group hidden md:block">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                <Input
+                  placeholder="ค้นหาร้านค้า..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-11 h-11 bg-white border border-slate-200 rounded-xl w-64 text-sm font-medium focus:border-blue-400 transition-all font-sans"
+                />
               </div>
-              <div className="min-w-0">
-                <div className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-none mb-1.5 truncate">{stat.label}</div>
-                <div className="text-xl font-bold text-slate-950 leading-none">{stat.value}</div>
-              </div>
+              <AdminPrimaryButton onClick={handleOpenAdd} icon={Store}>
+                เพิ่มร้านค้าใหม่
+              </AdminPrimaryButton>
             </div>
-          </div>
-        ))}
-      </div>
+          }
+        />
 
-      <div className="rounded-2xl border-2 border-slate-100 bg-white shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="admin-table">
-            <thead>
-              <tr className="bg-slate-50/80">
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100">STORE INFORMATION</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100">BUSINESS TYPE</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100">GEOLOCATION</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100">CONTACT</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100 text-center">ORDER VOL.</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100 text-right">ACTION</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={6} className="px-8 py-32 text-center opacity-30 animate-pulse font-black uppercase text-[12px] tracking-widest">FETCHING DATA...</td></tr>
-              ) : stores.length === 0 ? (
-                <tr><td colSpan={6} className="px-8 py-40 text-center text-slate-300">
-                  <Building2 className="w-16 h-16 mx-auto mb-4 opacity-20" />
-                  <span className="text-[12px] font-black uppercase tracking-widest">NO PARTNERS REGISTERED</span>
-                </td></tr>
-              ) : (
-                stores.map((shop) => (
-                  <tr key={shop.id} className="group hover:bg-slate-50/50 transition-all font-bold">
-                    <td className="px-6 py-4">
-                       <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200">
-                             <Store className="h-5 w-5" />
-                          </div>
-                           <div className="min-w-0">
-                              <div className="text-sm font-bold text-slate-950 leading-tight truncate uppercase tracking-tight">{shop.name}</div>
-                              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">ID: {shop.id.slice(-8).toUpperCase()}</div>
-                           </div>
-                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                        <span className="inline-flex h-7 px-3 items-center rounded-lg bg-slate-50 text-xs font-bold text-slate-500 uppercase border border-slate-100">
-                           {shop.type}
-                        </span>
-                    </td>
-                    <td className="px-6 py-4">
-                       <div className="flex items-center gap-2 text-slate-600">
-                          <MapPin className="h-3.5 w-3.5 text-slate-300" />
-                          <div className="flex items-center gap-1.5 overflow-hidden">
-                             <span className="text-[13px] font-bold truncate max-w-[120px]">{shop.location || "—"}</span>
-                             {shop.mapUrl && (
-                                <a 
-                                  href={shop.mapUrl} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="p-1.5 rounded-lg bg-blue-50 text-blue-500 hover:bg-blue-100 transition-colors"
-                                  title="ดูแผนที่"
-                                >
-                                   <ExternalLink className="w-3 h-3" />
-                                </a>
-                             )}
-                          </div>
-                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                       <div className="flex items-center gap-2 text-slate-600">
-                          <Phone className="h-3.5 w-3.5 text-slate-300" />
-                          <span className="text-[13px] font-bold">{shop.phone || "—"}</span>
-                       </div>
-                    </td>
-                     <td className="px-6 py-4 text-center">
-                        <span className="text-base font-bold text-slate-950 tracking-tighter">{shop.orders || 0}</span>
-                     </td>
-                    <td className="px-6 py-4 text-right flex items-center justify-end gap-2 pr-6">
-                       <button 
-                        onClick={() => handleOpenEdit(shop)} 
-                        className="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-400 hover:bg-slate-950 hover:text-white transition-all active:scale-95"
-                       >
-                         <Edit2 className="w-4 w-4" />
-                       </button>
-                       <button 
-                        onClick={() => handleDelete(shop.id)} 
-                        className="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-400 hover:bg-red-500 hover:text-white transition-all active:scale-95"
-                       >
-                         <Trash2 className="w-4 w-4" />
-                       </button>
+        <AdminStatGrid>
+          <AdminStatCard
+            label="จำนวนร้านค้า"
+            value={stores.length}
+            detail="พาร์ทเนอร์ทั้งหมดในระบบ"
+            icon={Building2}
+            tone="slate"
+          />
+          <AdminStatCard
+            label="หมวดหมู่ร้าน"
+            value={settings.categories.length}
+            detail="ประเภทธุรกิจที่ลงทะเบียน"
+            icon={Store}
+            tone="blue"
+          />
+          <AdminStatCard
+            label="ออร์เดอร์สะสม"
+            value={stores.reduce((a, b) => a + (b.orders || 0), 0)}
+            detail="ยอดสั่งซื้อรวมทุกร้าน"
+            icon={ShoppingCart}
+            tone="emerald"
+          />
+          <AdminStatCard
+            label="ร้านค้า Active"
+            value={stores.filter(s => (s.orders || 0) > 0).length}
+            detail="มีการสั่งซื้ออย่างน้อย 1 ครั้ง"
+            icon={ExternalLink}
+            tone="amber"
+          />
+        </AdminStatGrid>
+
+        <AdminPanel title="ทำเนียบร้านค้า" subtitle="รายชื่อพาร์ทเนอร์ที่พร้อมให้บริการจัดซื้อ">
+          <div className="overflow-x-auto">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>ข้อมูลร้านค้า</th>
+                  <th>ประเภทธุรกิจ</th>
+                  <th>พิกัดที่ตั้ง</th>
+                  <th>การติดต่อ</th>
+                  <th className="text-center">ยอดซื้อ</th>
+                  <th className="text-right">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-16">
+                      <div className="flex flex-col items-center justify-center gap-3 text-slate-500">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                        <span className="text-sm font-medium">กำลังโหลดข้อมูล</span>
+                      </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                ) : filteredStores.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-0">
+                      <AdminEmptyState
+                        icon={Building2}
+                        title={searchQuery ? "ไม่พบร้านค้าที่ค้นหา" : "ยังไม่มีรายการร้านค้า"}
+                        description={searchQuery ? "ลองระบุชื่อร้านค้าหรือสถานที่ใหม่อีกครั้ง" : "เริ่มต้นโดยการเพิ่มพาร์ทเนอร์ร้านค้าใหม่เข้าสู่ระบบ"}
+                      />
+                    </td>
+                  </tr>
+                ) : (
+                  filteredStores.map((shop) => (
+                    <tr key={shop.id} className="hover:bg-slate-50 transition-colors">
+                      <td>
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400">
+                            <Store className="h-5 w-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-slate-900 leading-tight uppercase tracking-tight">{shop.name}</div>
+                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">ID: {shop.id.slice(-6).toUpperCase()}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                          {shop.type}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-2 text-slate-600">
+                          <MapPin className="h-3.5 w-3.5 text-slate-300" />
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-sm truncate max-w-[120px]">{shop.location || "—"}</span>
+                            {shop.mapUrl && (
+                              <AdminSecondaryButton
+                                onClick={() => window.open(shop.mapUrl, "_blank")}
+                                icon={ExternalLink}
+                                className="h-7 w-7 p-0"
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-2 text-slate-600">
+                          <Phone className="h-3.5 w-3.5 text-slate-300" />
+                          <span className="text-sm">{shop.phone || "—"}</span>
+                        </div>
+                      </td>
+                      <td className="text-center">
+                        <span className="text-sm font-bold text-slate-900">{shop.orders || 0}</span>
+                      </td>
+                      <td className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <AdminSecondaryButton onClick={() => handleOpenEdit(shop)} icon={Edit2} className="h-8 w-8 p-0" />
+                          <AdminSecondaryButton
+                            onClick={() => handleDelete(shop.id)}
+                            icon={Trash2}
+                            className="h-8 w-8 p-0 hover:text-red-600 hover:bg-red-50"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </AdminPanel>
+      </AdminPage>
 
       {/* Register/Edit Modal */}
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        title={<span className="font-black uppercase tracking-widest text-[14px]">{isEditing ? "แก้ไขข้อมูลร้านค้า" : "ลงทะเบียนพาร์ทเนอร์ใหม่"}</span>}
+        title={isEditing ? "แก้ไขข้อมูลร้านค้า" : "ลงทะเบียนพาร์ทเนอร์ใหม่"}
       >
         <form onSubmit={handleSubmit} className="space-y-6 pt-4">
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">ชื่อร้านค้า (REGISTER NAME)</Label>
+              <Label className="text-xs font-semibold text-slate-500">ชื่อร้านค้า</Label>
               <Input 
                 required 
-                placeholder="ระบุชื่อที่จะใช้แสดงผลในระบบ..." 
-                className="h-12 border-2 border-slate-100 rounded-xl text-[14px] font-bold text-slate-900 font-sans"
+                placeholder="ระบุชื่อที่จะใช้แสดงผลในระบบ" 
+                className="h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900"
                 value={formData.name} 
                 onChange={(e) => setFormData({...formData, name: e.target.value})} 
               />
@@ -237,9 +266,9 @@ export default function StoresPage() {
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">ประเภทธุรกิจ</Label>
+                <Label className="text-xs font-semibold text-slate-500">ประเภทธุรกิจ</Label>
                 <Select 
-                  className="h-12 border-2 border-slate-100 rounded-xl text-[14px] font-bold text-slate-900"
+                  className="h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900"
                   value={formData.type} 
                   onChange={(e) => setFormData({...formData, type: e.target.value})}
                 >
@@ -248,10 +277,10 @@ export default function StoresPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">เบอร์โทรศัพท์ติดต่อ</Label>
+                <Label className="text-xs font-semibold text-slate-500">เบอร์โทรศัพท์ติดต่อ</Label>
                 <Input 
                   placeholder="เช่น 086-XXX-XXXX" 
-                  className="h-12 border-2 border-slate-100 rounded-xl text-[14px] font-bold text-slate-900 font-sans"
+                  className="h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900"
                   value={formData.phone} 
                   onChange={(e) => setFormData({...formData, phone: e.target.value})} 
                 />
@@ -259,22 +288,22 @@ export default function StoresPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">ที่ตั้งร้านค้า / พื้นที่ให้บริการ</Label>
+              <Label className="text-xs font-semibold text-slate-500">ที่ตั้งร้านค้า / พื้นที่ให้บริการ</Label>
               <Input 
-                placeholder="เช่น กทม., สมุทรปราการ, เขตบางนา..." 
-                className="h-12 border-2 border-slate-100 rounded-xl text-[14px] font-bold text-slate-900 font-sans"
+                placeholder="เช่น กทม., สมุทรปราการ..." 
+                className="h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900"
                 value={formData.location} 
                 onChange={(e) => setFormData({...formData, location: e.target.value})} 
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">พิกัดแผนที่ (GOOGLE MAPS URL)</Label>
+              <Label className="text-xs font-semibold text-slate-500">พิกัดแผนที่ (GOOGLE MAPS URL)</Label>
               <div className="relative group">
                 <ExternalLink className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-blue-500" />
                 <Input 
                   placeholder="https://maps.google.com/..." 
-                  className="pl-11 h-12 border-2 border-slate-100 rounded-xl text-[14px] font-bold text-slate-900 font-sans"
+                  className="pl-11 h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900"
                   value={formData.mapUrl} 
                   onChange={(e) => setFormData({...formData, mapUrl: e.target.value})} 
                 />
@@ -282,28 +311,23 @@ export default function StoresPage() {
             </div>
           </div>
 
-           <div className="flex gap-3 pt-6 border-t-2 border-slate-50 mt-4">
-             <button 
-               type="button" 
-               className="flex-1 h-12 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-400 hover:bg-slate-50 border-2 border-transparent" 
+           <div className="flex gap-3 pt-6 border-t border-slate-100 mt-4">
+             <AdminSecondaryButton 
+               className="flex-1" 
                onClick={() => setIsModalOpen(false)}
              >
                ยกเลิก
-             </button>
-             <button 
-               disabled={submitting} 
-               className="flex-[2] h-12 bg-slate-950 text-white text-sm font-bold uppercase tracking-widest rounded-xl flex items-center justify-center gap-3 shadow-sm"
+             </AdminSecondaryButton>
+             <AdminPrimaryButton 
+               submitting={submitting} 
+               icon={CheckCircle2}
+               className="flex-[2]"
              >
-               {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-                 <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-primary" />
-                    {isEditing ? "อัปเดตข้อมูล" : "ลงทะเบียนร้านค้า"}
-                 </div>
-               )}
-             </button>
+               {isEditing ? "อัปเดตข้อมูล" : "ลงทะเบียนร้านค้า"}
+             </AdminPrimaryButton>
            </div>
         </form>
       </Modal>
-    </div>
+    </>
   );
 }

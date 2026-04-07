@@ -22,6 +22,10 @@
   border-color: var(--border);
 }
 
+font {
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -33,9 +37,8 @@ body {
     linear-gradient(180deg, #f9fafb 0%, var(--background) 42%, #eef2f6 100%);
   min-height: 100vh;
   font-weight: 400;
-  font-feature-settings: "ss01" on, "cv02" on, "cv11" on;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
 }
 
 a {
@@ -84,9 +87,11 @@ h6,
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+
 .gradient-sidebar {
-    background: linear-gradient(180deg, #ffffff 0%, #ffffff 30%, #a3e635 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #ffffff 30%, #a3e635 100%);
 }
+
 .app-shell {
   position: relative;
 }
@@ -203,6 +208,8 @@ h6,
 
 .buy-ui {
   color: #0b1324;
+  background: #e4f1cf;
+
 }
 
 .buy-ui h1,
@@ -265,6 +272,8 @@ h6,
 
 .order-ui {
   color: #0a1428;
+  background: #e4f1cf;
+
 }
 
 .order-ui h1,
@@ -333,6 +342,8 @@ h6,
 
 .admin-ui {
   color: #0f172a;
+  background: #e4f1cf;
+
 }
 
 .admin-ui h1,

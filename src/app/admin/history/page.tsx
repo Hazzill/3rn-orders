@@ -21,8 +21,7 @@ export default function HistoryPage() {
         actions={
           <>
             <AdminSearch placeholder="ค้นหาประวัติ" />
-            <AdminPrimaryButton>
-              <Download className="h-4 w-4" />
+            <AdminPrimaryButton icon={Download}>
               ส่งออกข้อมูล
             </AdminPrimaryButton>
           </>
@@ -30,10 +29,10 @@ export default function HistoryPage() {
       />
 
       <AdminStatGrid>
-        <AdminStatCard label="รายการบันทึก" value="1,248" detail="จำนวน log ทั้งหมด" icon={FileText} tone="slate" />
-        <AdminStatCard label="ส่งออกแล้ว" value="45" detail="จำนวนครั้งที่ export" icon={Download} tone="blue" />
-        <AdminStatCard label="เก็บข้อมูล" value="365 วัน" detail="รอบเวลา retention" icon={Clock} tone="emerald" />
-        <AdminStatCard label="พื้นที่ใช้จริง" value="1.2 GB" detail="ขนาดข้อมูลย้อนหลัง" icon={History} tone="amber" />
+        <AdminStatCard label="รายการบันทึก" value="0" detail="จำนวน log ทั้งหมด" icon={FileText} tone="slate" />
+        <AdminStatCard label="ส่งออกแล้ว" value="0" detail="จำนวนครั้งที่ export" icon={Download} tone="blue" />
+        <AdminStatCard label="เก็บข้อมูล" value="0 วัน" detail="รอบเวลา retention" icon={Clock} tone="emerald" />
+        <AdminStatCard label="พื้นที่ใช้จริง" value="0 GB" detail="ขนาดข้อมูลย้อนหลัง" icon={History} tone="amber" />
       </AdminStatGrid>
 
       <AdminPanel title="ระบบประวัติย้อนหลัง" subtitle="ส่วนนี้ยังอยู่ระหว่างเตรียมข้อมูลและสิทธิ์การเข้าถึง">

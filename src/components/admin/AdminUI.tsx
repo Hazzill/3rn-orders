@@ -1,11 +1,11 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { Search } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 import { Button, cn } from "@/components/ui/Button";
 import { Input } from "@/components/ui/FormElements";
 
-type Tone = "slate" | "blue" | "emerald" | "amber" | "red";
+type Tone = "slate" | "blue" | "emerald" | "amber" | "red" | "purple";
 
 const toneStyles: Record<Tone, { icon: string; chip: string }> = {
   slate: {
@@ -27,6 +27,10 @@ const toneStyles: Record<Tone, { icon: string; chip: string }> = {
   red: {
     icon: "border-red-200 bg-red-50 text-red-700",
     chip: "border-red-200 bg-red-50 text-red-700",
+  },
+  purple: {
+    icon: "border-purple-200 bg-purple-50 text-purple-700",
+    chip: "border-purple-200 bg-purple-50 text-purple-700",
   },
 };
 
@@ -73,19 +77,33 @@ export function AdminSearch({
   );
 }
 
+export interface AdminButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  icon?: LucideIcon;
+  submitting?: boolean;
+}
+
 export function AdminPrimaryButton({
   children,
   className,
+  icon: Icon,
+  submitting,
+  disabled,
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+}: AdminButtonProps) {
   return (
     <Button
       {...props}
+      disabled={disabled || submitting}
       className={cn(
-        "h-10 rounded-lg border-slate-900 bg-slate-900 px-4 text-sm font-medium tracking-normal text-white hover:bg-slate-800 hover:text-white",
+        "h-10 rounded-lg border-slate-900 bg-slate-900 px-4 text-sm font-medium tracking-normal text-white hover:bg-slate-800 hover:text-white disabled:bg-slate-700 disabled:opacity-70",
         className,
       )}
     >
+      {submitting ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : Icon ? (
+        <Icon className="h-4 w-4" />
+      ) : null}
       {children}
     </Button>
   );
@@ -94,17 +112,26 @@ export function AdminPrimaryButton({
 export function AdminSecondaryButton({
   children,
   className,
+  icon: Icon,
+  submitting,
+  disabled,
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+}: AdminButtonProps) {
   return (
     <Button
       {...props}
       variant="secondary"
+      disabled={disabled || submitting}
       className={cn(
-        "h-10 rounded-lg border-slate-300 px-4 text-sm font-medium tracking-normal text-slate-700 hover:bg-slate-50",
+        "h-10 rounded-lg border-slate-300 px-4 text-sm font-medium tracking-normal text-slate-700 hover:bg-slate-50 disabled:opacity-50",
         className,
       )}
     >
+      {submitting ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : Icon ? (
+        <Icon className="h-4 w-4" />
+      ) : null}
       {children}
     </Button>
   );
@@ -133,6 +160,7 @@ export function AdminStatCard({
   icon: LucideIcon;
   tone?: Tone;
 }) {
+  const styles = toneStyles[tone as Tone] || toneStyles.slate;
   return (
     <div className="admin-stat-card">
       <div className="flex items-start justify-between gap-3">
@@ -144,7 +172,7 @@ export function AdminStatCard({
         <div
           className={cn(
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border",
-            toneStyles[tone].icon,
+            styles.icon,
           )}
         >
           <Icon className="h-4 w-4" />
@@ -192,11 +220,12 @@ export function AdminStatusChip({
   tone?: Tone;
   className?: string;
 }) {
+  const styles = toneStyles[tone as Tone] || toneStyles.slate;
   return (
     <span
       className={cn(
         "inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-medium",
-        toneStyles[tone].chip,
+        styles.chip,
         className,
       )}
     >

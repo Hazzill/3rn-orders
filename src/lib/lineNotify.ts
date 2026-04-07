@@ -78,62 +78,62 @@ export function buildNewOrderMessage(data: {
 
   const flex: any = {
     type: "flex",
-    altText: `🛒 คำสั่งซื้อใหม่จาก ${data.requesterName}`,
+    altText: `แจ้งเตือนคำสั่งซื้อจาก: ${data.requesterName}`,
     contents: {
       type: "bubble",
       size: "medium",
-      header: {
-        type: "box",
-        layout: "vertical",
-        backgroundColor: "#0F172A",
-        paddingAll: "lg",
-        contents: [
-          {
-            type: "text",
-            text: "🛒 คำสั่งซื้อใหม่!",
-            weight: "bold",
-            color: "#ffffff",
-            size: "md",
-          },
-        ],
-      },
       body: {
         type: "box",
         layout: "vertical",
+        paddingAll: "xl",
         contents: [
           {
             type: "text",
-            text: data.storeName || "ไม่ระบุร้านค้า",
+            text: "คำสั่งซื้อใหม่",
             weight: "bold",
-            size: "xl",
-            margin: "md",
-            wrap: true,
+            color: "#2563EB",
+            size: "xs",
+            letterSpacing: "0.1em",
           },
           {
-             type: "box",
-             layout: "vertical",
-             margin: "lg",
-             spacing: "sm",
-             contents: [
-                {
-                   type: "box",
-                   layout: "baseline",
-                   spacing: "md",
-                   contents: [
-                      { type: "text", text: "👤 ผู้สั่ง", color: "#64748B", size: "sm", flex: 2 },
-                      { type: "text", text: data.requesterName, weight: "bold", color: "#1E293B", size: "sm", flex: 5, wrap: true }
-                   ]
-                },
-                {
-                   type: "box",
-                   layout: "baseline",
-                   spacing: "md",
-                   contents: [
-                      { type: "text", text: "📦 รายการ", color: "#64748B", size: "sm", flex: 2 },
-                      { type: "text", text: itemList, color: "#1E293B", size: "sm", flex: 5, wrap: true }
-                   ]
-                }
-             ]
+            type: "text",
+            text: data.storeName || "ร้านค้า/คู่ค้า",
+            weight: "bold",
+            size: "xxl",
+            margin: "md",
+            wrap: true,
+            color: "#0F172A",
+          },
+          {
+            type: "separator",
+            margin: "xl",
+            color: "#F1F5F9",
+          },
+          {
+            type: "box",
+            layout: "vertical",
+            margin: "xl",
+            spacing: "sm",
+            contents: [
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "md",
+                contents: [
+                  { type: "text", text: "ผู้ขอซื้อ", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
+                  { type: "text", text: data.requesterName, weight: "bold", color: "#1E293B", size: "sm", flex: 7, wrap: true }
+                ]
+              },
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "md",
+                contents: [
+                  { type: "text", text: "รายการ", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
+                  { type: "text", text: itemList, color: "#1E293B", size: "sm", flex: 7, wrap: true }
+                ]
+              }
+            ]
           }
         ],
       },
@@ -141,6 +141,7 @@ export function buildNewOrderMessage(data: {
         type: "box",
         layout: "vertical",
         spacing: "sm",
+        paddingAll: "lg",
         contents: [] as any[]
       },
     },
@@ -154,7 +155,7 @@ export function buildNewOrderMessage(data: {
       color: "#2563EB",
       action: {
         type: "uri",
-        label: "📍 ดูแผงผัง/แผนที่",
+        label: "ดูแผนที่/ที่ตั้ง",
         uri: data.mapUrl,
       },
     });
@@ -164,7 +165,7 @@ export function buildNewOrderMessage(data: {
     type: "button",
     style: "link",
     height: "sm",
-    color: "#475569",
+    color: "#64748B",
     action: {
       type: "uri",
       label: "เปิดระบบจัดการ",
@@ -186,74 +187,74 @@ export function buildCompletedOrderMessage(data: {
   mapUrl?: string;
   completedBy?: string;
 }): any {
-  const resultText = `ซื้อแล้ว ${data.boughtCount} / ${data.itemCount} รายการ`;
-  
+  const resultText = `ซื้อแล้ว ${data.boughtCount} จาก ${data.itemCount} รายการ`;
+
   const flex: any = {
     type: "flex",
-    altText: `✅ ออร์เดอร์เสร็จสิ้น: ${data.storeName}`,
+    altText: `ดำเนินการเสร็จสิ้น: ${data.storeName}`,
     contents: {
       type: "bubble",
       size: "medium",
-      header: {
-        type: "box",
-        layout: "vertical",
-        backgroundColor: "#10B981",
-        paddingAll: "lg",
-        contents: [
-          {
-            type: "text",
-            text: "✅ ออร์เดอร์เสร็จสิ้น!",
-            weight: "bold",
-            color: "#ffffff",
-            size: "md",
-          },
-        ],
-      },
       body: {
         type: "box",
         layout: "vertical",
+        paddingAll: "xl",
         contents: [
           {
             type: "text",
-            text: data.storeName || "ไม่ระบุร้านค้า",
+            text: "ดำเนินการเสร็จสิ้น",
             weight: "bold",
-            size: "xl",
+            color: "#10B981",
+            size: "xs",
+            letterSpacing: "0.1em",
+          },
+          {
+            type: "text",
+            text: data.storeName || "ร้านค้า/คู่ค้า",
+            weight: "bold",
+            size: "xxl",
             margin: "md",
             wrap: true,
+            color: "#0F172A",
+          },
+          {
+            type: "separator",
+            margin: "xl",
+            color: "#F1F5F9",
           },
           {
             type: "box",
             layout: "vertical",
-            margin: "lg",
+            margin: "xl",
             spacing: "sm",
             contents: [
-               {
-                  type: "box",
-                  layout: "baseline",
-                  spacing: "md",
-                  contents: [
-                     { type: "text", text: "📊 สรุป", color: "#64748B", size: "sm", flex: 2 },
-                     { type: "text", text: resultText, weight: "bold", color: "#1E293B", size: "sm", flex: 5, wrap: true }
-                  ]
-               },
-               data.cancelledCount > 0 ? {
-                  type: "box",
-                  layout: "baseline",
-                  spacing: "md",
-                  contents: [
-                     { type: "text", text: "❌ ขาด/ยกเลิก", color: "#64748B", size: "sm", flex: 2 },
-                     { type: "text", text: `${data.cancelledCount} รายการ`, color: "#EF4444", size: "sm", flex: 5 }
-                  ]
-               } : null,
-               {
-                  type: "box",
-                  layout: "baseline",
-                  spacing: "md",
-                  contents: [
-                     { type: "text", text: "👤 โดย", color: "#64748B", size: "sm", flex: 2 },
-                     { type: "text", text: data.completedBy || "-", color: "#1E293B", size: "sm", flex: 5 }
-                  ]
-               }
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "md",
+                contents: [
+                  { type: "text", text: "สรุปรายการ", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
+                  { type: "text", text: resultText, weight: "bold", color: "#1E293B", size: "sm", flex: 7, wrap: true }
+                ]
+              },
+              data.cancelledCount > 0 ? {
+                type: "box",
+                layout: "baseline",
+                spacing: "md",
+                contents: [
+                  { type: "text", text: "ยกเลิก/ขาด", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
+                  { type: "text", text: `${data.cancelledCount} รายการ`, color: "#EF4444", size: "sm", flex: 7 }
+                ]
+              } : null,
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "md",
+                contents: [
+                  { type: "text", text: "ผู้ซื้อสินค้า", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
+                  { type: "text", text: data.completedBy || "-", color: "#1E293B", size: "sm", flex: 7 }
+                ]
+              }
             ].filter(Boolean) as any[]
           }
         ],
@@ -262,6 +263,7 @@ export function buildCompletedOrderMessage(data: {
         type: "box",
         layout: "vertical",
         spacing: "sm",
+        paddingAll: "lg",
         contents: [] as any[]
       }
     }
@@ -274,7 +276,7 @@ export function buildCompletedOrderMessage(data: {
       height: "sm",
       action: {
         type: "uri",
-        label: "📍 แผนที่ร้านค้า",
+        label: "ดูแผนที่ร้านค้า",
         uri: data.mapUrl,
       },
     });

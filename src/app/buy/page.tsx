@@ -114,8 +114,8 @@ export default function BuyerDashboard() {
 
   return (
     <div className="buy-ui mx-auto max-w-md space-y-2.5 pb-20">
-      <MobileHeader 
-        title="ระบบจัดการคำสั่งซื้อ" 
+      <MobileHeader
+        title="ระบบจัดการคำสั่งซื้อ"
         userName={buyer.lineDisplayName || buyer.name}
         userAvatar={buyer.linePictureUrl}
         userRole={buyer.role}
@@ -124,16 +124,16 @@ export default function BuyerDashboard() {
       {/* Statistics Row */}
       <div className="grid grid-cols-3 gap-2 px-1">
         <div className="rounded-lg border border-blue-100 bg-blue-50/50 py-1.5 px-3">
-          <div className="text-[10px] uppercase tracking-widest text-blue-600 font-bold">ทั้งหมด</div>
-          <div className="text-xl font-bold text-blue-900">{orders.length}</div>
+          <div className="text-sm uppercase tracking-widest text-blue-600 font-bold">ทั้งหมด</div>
+          <div className="text-lg font-bold text-blue-900">{orders.length}</div>
         </div>
         <div className="rounded-lg border border-amber-100 bg-amber-50/50 py-1.5 px-3">
-          <div className="text-[10px] uppercase tracking-widest text-amber-600 font-bold">รอซื้อ</div>
-          <div className="text-xl font-bold text-amber-900">{pendingOrders.length}</div>
+          <div className="text-sm uppercase tracking-widest text-amber-600 font-bold">รอซื้อ</div>
+          <div className="text-lg font-bold text-amber-900">{pendingOrders.length}</div>
         </div>
         <div className="rounded-lg border border-emerald-100 bg-emerald-50/50 py-1.5 px-3">
-          <div className="text-[10px] uppercase tracking-widest text-emerald-600 font-bold">เสร็จสิ้น</div>
-          <div className="text-xl font-bold text-emerald-900">{completedOrders.length}</div>
+          <div className="text-sm uppercase tracking-widest text-emerald-600 font-bold">เสร็จสิ้น</div>
+          <div className="text-lg font-bold text-emerald-900">{completedOrders.length}</div>
         </div>
       </div>
 
@@ -145,7 +145,7 @@ export default function BuyerDashboard() {
             </div>
             <div className="text-left">
               <div className="text-sm font-bold text-slate-950 leading-tight">สร้างคำขอซื้อ</div>
-              <div className="text-[10px] text-slate-950/60 uppercase font-semibold tracking-tight">เพิ่มออร์เดอร์ใหม่</div>
+              <div className="text-sm text-slate-950/60 uppercase font-semibold tracking-tight">เพิ่มออร์เดอร์ใหม่</div>
             </div>
           </button>
         </Link>
@@ -157,7 +157,7 @@ export default function BuyerDashboard() {
             </div>
             <div className="text-left">
               <div className="text-sm font-bold text-slate-950 leading-tight font-sans">ร้านค้า</div>
-              <div className="text-[10px] text-slate-500 uppercase font-semibold tracking-widest">รายชื่อคู่ค้า</div>
+              <div className="text-sm text-slate-500 uppercase font-semibold tracking-widest">รายชื่อคู่ค้า</div>
             </div>
           </button>
         </Link>
@@ -166,7 +166,7 @@ export default function BuyerDashboard() {
       <div className="space-y-2">
         <div className="flex items-center justify-between px-1.5 pt-1.5">
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-600 leading-none">รายการล่าสุด • RECENT ORDERS</h2>
-          <Link href="/buy/history" className="text-[10px] font-bold text-slate-950 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-widest">
+          <Link href="/buy/history" className="text-sm font-bold text-slate-950 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-widest">
             ดูทั้งหมด
           </Link>
         </div>
@@ -188,11 +188,11 @@ export default function BuyerDashboard() {
               const firstItem = order.items?.[0];
               const itemCount = order.items?.length || 0;
 
-              const accentColor = 
-                  order.status === "completed" ? "border-l-emerald-500" :
+              const accentColor =
+                order.status === "completed" ? "border-l-emerald-500" :
                   order.status === "cancelled" ? "border-l-red-500" :
-                  order.status === "buying" ? "border-l-blue-500" :
-                  order.status === "sorting" ? "border-l-violet-500" : "border-l-amber-500";
+                    order.status === "buying" ? "border-l-blue-500" :
+                      order.status === "sorting" ? "border-l-violet-500" : "border-l-amber-500";
 
               return (
                 <div
@@ -215,8 +215,8 @@ export default function BuyerDashboard() {
                     </div>
                     <div className="flex flex-col items-end gap-1.5">
                       <span className={cn(
-                          "px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tight",
-                          status.color.replace('border-', '')
+                        "px-2 py-0.5 rounded text-sm font-black uppercase tracking-tight",
+                        status.color.replace('border-', '')
                       )}>
                         {status.label}
                       </span>
@@ -224,36 +224,36 @@ export default function BuyerDashboard() {
                   </div>
 
                   <div className="mt-2.5 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                     <div className="min-w-0 flex-1">
-                        <span className="text-sm text-slate-950 font-bold block truncate leading-tight uppercase tracking-tight">
-                          {firstItem
-                            ? `${firstItem.name}${itemCount > 1 ? ` และอีก ${itemCount - 1} รายการ` : ""}`
-                            : "ไม่มีรายการสินค้า"}
-                        </span>
-                        {(order.status === "completed" || order.status === "sorting") && (
-                          <div className="mt-1.5 flex items-center gap-2">
-                             {(() => {
-                               const bought = order.items?.filter(i => i.status === "bought").length || 0;
-                               const missing = order.items?.filter(i => i.status === "out_of_stock" || i.status === "cancelled").length || 0;
-                               
-                               if (missing === 0 && bought > 0) {
-                                 return <span className="text-[10px] font-black text-emerald-700 bg-emerald-100/50 px-2 py-0.5 rounded-sm uppercase tracking-tighter">ซื้อครบทุกรายการ</span>;
-                               }
-                               if (bought > 0 || missing > 0) {
-                                 return (
-                                   <div className="flex items-center gap-1">
-                                      <span className="text-[10px] font-black text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md uppercase tracking-widest">
-                                        ได้ {bought} / ขาด {missing}
-                                      </span>
-                                   </div>
-                                 );
-                               }
-                               return null;
-                             })()}
-                          </div>
-                        )}
-                     </div>
-                     <ChevronRight className="h-4 w-4 text-slate-300 shrink-0 ml-2" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-sm text-slate-950 font-bold block truncate leading-tight uppercase tracking-tight">
+                        {firstItem
+                          ? `${firstItem.name}${itemCount > 1 ? ` และอีก ${itemCount - 1} รายการ` : ""}`
+                          : "ไม่มีรายการสินค้า"}
+                      </span>
+                      {(order.status === "completed" || order.status === "sorting") && (
+                        <div className="mt-1.5 flex items-center gap-2">
+                          {(() => {
+                            const bought = order.items?.filter(i => i.status === "bought").length || 0;
+                            const missing = order.items?.filter(i => i.status === "out_of_stock" || i.status === "cancelled").length || 0;
+
+                            if (missing === 0 && bought > 0) {
+                              return <span className="text-sm font-black text-emerald-700 bg-emerald-100/50 px-2 py-0.5 rounded-sm uppercase tracking-tighter">ซื้อครบทุกรายการ</span>;
+                            }
+                            if (bought > 0 || missing > 0) {
+                              return (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-sm font-black text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md uppercase tracking-widest">
+                                    ได้ {bought} / ขาด {missing}
+                                  </span>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
+                        </div>
+                      )}
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-slate-300 shrink-0 ml-2" />
                   </div>
                 </div>
               );
@@ -272,25 +272,25 @@ export default function BuyerDashboard() {
             <div className="flex justify-end mb-1">
               {selectedOrder.status !== "completed" && selectedOrder.status !== "cancelled" && (
                 !isEditing ? (
-                  <button 
+                  <button
                     onClick={() => setIsEditing(true)}
-                    className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-800 transition-colors"
+                    className="flex items-center gap-1.5 text-sm font-black uppercase tracking-widest text-blue-600 hover:text-blue-800 transition-colors"
                   >
                     <Edit className="h-3.5 w-3.5" />
                     แก้ไขข้อมูล
                   </button>
                 ) : (
                   <div className="flex gap-3">
-                    <button 
+                    <button
                       onClick={() => {
                         setIsEditing(false);
                         setEditedOrder({ ...selectedOrder });
                       }}
-                      className="text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600"
+                      className="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600"
                     >
                       ยกเลิก
                     </button>
-                    <button 
+                    <button
                       onClick={saveEdit}
                       className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-emerald-700"
                     >
@@ -306,16 +306,16 @@ export default function BuyerDashboard() {
               <div className="space-y-4 animate-in fade-in slide-in-from-top-1 duration-200 focus-within:ring-0">
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">ชื่อร้านค้า</label>
-                    <input 
+                    <label className="text-sm font-semibold uppercase tracking-widest text-slate-500">ชื่อร้านค้า</label>
+                    <input
                       className="w-full h-10 px-3 rounded-lg border-2 border-slate-100 bg-slate-50/50 text-sm font-bold text-slate-950 outline-none"
                       value={editedOrder.storeName}
                       onChange={(e) => setEditedOrder({ ...editedOrder, storeName: e.target.value })}
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">สถานที่</label>
-                    <input 
+                    <label className="text-sm font-semibold uppercase tracking-widest text-slate-500">สถานที่</label>
+                    <input
                       className="w-full h-10 px-3 rounded-lg border-2 border-slate-100 bg-slate-50/50 text-sm font-bold text-slate-950 outline-none"
                       value={editedOrder.location}
                       onChange={(e) => setEditedOrder({ ...editedOrder, location: e.target.value })}
@@ -325,10 +325,10 @@ export default function BuyerDashboard() {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">รายการสินค้า</label>
-                    <button 
+                    <label className="text-sm font-black uppercase tracking-wider text-slate-400">รายการสินค้า</label>
+                    <button
                       onClick={addEditItem}
-                      className="flex items-center gap-1 text-[10px] font-black uppercase text-blue-600 hover:bg-blue-50 px-2 py-1 rounded"
+                      className="flex items-center gap-1 text-sm font-black uppercase text-blue-600 hover:bg-blue-50 px-2 py-1 rounded"
                     >
                       <Plus className="h-3 w-3" />
                       เพิ่มสินค้า
@@ -338,13 +338,13 @@ export default function BuyerDashboard() {
                     {editedOrder.items.map((item, idx) => (
                       <div key={item.id || idx} className="p-3 rounded-xl border-2 border-slate-50 bg-white space-y-2">
                         <div className="flex gap-1.5">
-                          <input 
+                          <input
                             placeholder="ชื่อสินค้า"
                             className="flex-1 h-10 px-3 rounded-lg border-2 border-slate-100 bg-slate-50 text-sm font-bold text-slate-950 outline-none"
                             value={item.name}
                             onChange={(e) => updateEditItem(idx, 'name', e.target.value)}
                           />
-                          <button 
+                          <button
                             onClick={() => removeEditItem(idx)}
                             className="h-10 w-10 flex items-center justify-center text-red-600 bg-red-50 border-2 border-transparent"
                           >
@@ -352,14 +352,14 @@ export default function BuyerDashboard() {
                           </button>
                         </div>
                         <div className="grid grid-cols-2 gap-1.5">
-                          <input 
+                          <input
                             type="number"
                             placeholder="จำนวน"
                             className="h-10 px-3 rounded-lg border-2 border-slate-100 bg-slate-50 text-sm font-bold text-slate-950 outline-none"
                             value={item.qty}
                             onChange={(e) => updateEditItem(idx, 'qty', Number(e.target.value))}
                           />
-                          <input 
+                          <input
                             placeholder="หน่วย"
                             className="h-10 px-3 rounded-lg border-2 border-slate-100 bg-slate-50 text-sm font-bold text-slate-950 outline-none"
                             value={item.unit}
@@ -375,24 +375,24 @@ export default function BuyerDashboard() {
               <>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      <span className="text-[10px] text-slate-500 block mb-1 font-black uppercase tracking-widest leading-none">สถานะออร์เดอร์</span>
-                      <span className={cn(
-                        "inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tight mb-1",
-                        (STATUS_MAP[selectedOrder.status as keyof typeof STATUS_MAP] || STATUS_MAP.pending).color.replace('border-', ''),
-                      )}>
-                        {(STATUS_MAP[selectedOrder.status as keyof typeof STATUS_MAP] || STATUS_MAP.pending).label}
-                      </span>
+                    <span className="text-sm text-slate-500 block mb-1 font-black uppercase tracking-widest leading-none">สถานะออร์เดอร์</span>
+                    <span className={cn(
+                      "inline-block px-2 py-0.5 rounded text-sm font-black uppercase tracking-tight mb-1",
+                      (STATUS_MAP[selectedOrder.status as keyof typeof STATUS_MAP] || STATUS_MAP.pending).color.replace('border-', ''),
+                    )}>
+                      {(STATUS_MAP[selectedOrder.status as keyof typeof STATUS_MAP] || STATUS_MAP.pending).label}
+                    </span>
                   </div>
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      <span className="text-[10px] text-slate-500 block mb-1 font-black uppercase tracking-widest leading-none">วันที่สั่งซื้อ</span>
-                      <span className="text-[11px] font-bold text-slate-900">{formatDateTime(selectedOrder.createdAt)}</span>
+                    <span className="text-sm text-slate-500 block mb-1 font-black uppercase tracking-widest leading-none">วันที่สั่งซื้อ</span>
+                    <span className="text-sm font-bold text-slate-900">{formatDateTime(selectedOrder.createdAt)}</span>
                   </div>
                 </div>
 
                 <div className="divide-y divide-slate-100 border-t border-b border-slate-100">
                   {selectedOrder.items.map((item, i) => {
                     const isUnavailable = item.status === "cancelled" || item.status === "out_of_stock";
-                    
+
                     return (
                       <div
                         key={i}
@@ -408,7 +408,7 @@ export default function BuyerDashboard() {
                             {item.name}
                           </div>
                           <div className={cn(
-                            "text-[11px] font-bold bg-slate-50 inline-block px-1.5 py-0.5 rounded border border-slate-100 transition-colors",
+                            "text-sm font-bold bg-slate-50 inline-block px-1.5 py-0.5 rounded border border-slate-100 transition-colors",
                             isUnavailable ? "text-slate-400 opacity-50" : "text-slate-600"
                           )}>
                             {item.qty} {item.unit}
@@ -418,17 +418,17 @@ export default function BuyerDashboard() {
                           {item.status === "bought" ? (
                             <div className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100">
                               <CheckCircle2 className="h-3.5 w-3.5" />
-                              <span className="text-[10px] font-black uppercase tracking-tighter">ซื้อแล้ว</span>
+                              <span className="text-sm font-black uppercase tracking-tighter">ซื้อแล้ว</span>
                             </div>
                           ) : isUnavailable ? (
                             <div className="flex items-center gap-1.5 text-red-400 bg-red-50 px-2 py-1 rounded-lg border border-red-50">
                               <XCircle className="h-3.5 w-3.5" />
-                              <span className="text-[10px] font-black uppercase tracking-tighter">ไม่มี</span>
+                              <span className="text-sm font-black uppercase tracking-tighter">ไม่มี</span>
                             </div>
                           ) : (
                             <div className="flex items-center gap-1.5 text-amber-600 bg-amber-50 px-2 py-1 rounded-lg border border-amber-100">
                               <Clock className="h-3.5 w-3.5" />
-                              <span className="text-[10px] font-black uppercase tracking-tighter">รอดำเนินการ</span>
+                              <span className="text-sm font-black uppercase tracking-tighter">รอดำเนินการ</span>
                             </div>
                           )}
                         </div>
@@ -441,7 +441,7 @@ export default function BuyerDashboard() {
 
             {selectedOrder.note && (
               <div className="space-y-2 pt-1">
-                <span className="text-[11px] font-black text-slate-500 px-1 uppercase tracking-[0.2em] leading-none">ข้อความจากส่วนกลาง (Central Office Note)</span>
+                <span className="text-sm font-black text-slate-500 px-1 uppercase tracking-[0.2em] leading-none">ข้อความจากส่วนกลาง (Central Office Note)</span>
                 <div className="rounded-2xl border-2 border-slate-100 bg-slate-50/50 px-4 py-4 text-[13px] font-black leading-relaxed text-slate-800 shadow-inner">
                   {selectedOrder.note}
                 </div>
@@ -449,12 +449,12 @@ export default function BuyerDashboard() {
             )}
 
             <div className="pt-2">
-               <button 
-                  onClick={() => setSelectedOrder(null)} 
-                  className="w-full h-11 rounded-xl bg-slate-950 text-white text-sm font-bold uppercase tracking-widest"
-               >
-                 {isEditing ? "ปิด" : "หน้าหลัก"}
-               </button>
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="w-full h-11 rounded-xl bg-slate-950 text-white text-sm font-bold uppercase tracking-widest"
+              >
+                {isEditing ? "ปิด" : "หน้าหลัก"}
+              </button>
             </div>
           </div>
         )}

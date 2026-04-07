@@ -17,8 +17,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Order Management System | Admin & Ordering",
-  description: "Next-generation ordering and buying management system.",
+  title: "จัดการจัดซื้อ",
+  description: "จัดการคำสั่งซื้อสินค้า",
 };
 
 export default function RootLayout({

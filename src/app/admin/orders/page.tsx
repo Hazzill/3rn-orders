@@ -1,27 +1,34 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import {
+  AdminEmptyState,
+  AdminHeader,
+  AdminPage,
+  AdminPanel,
+  AdminPrimaryButton,
+  AdminSecondaryButton,
+  AdminStatusChip,
+  AdminStatCard,
+  AdminStatGrid,
+} from "@/components/admin/AdminUI";
+import {
   Search,
   Loader2,
   Package,
   Clock,
   CheckCircle2,
   ChevronRight,
-  Filter,
   ShoppingCart,
   ShoppingBag,
-  Truck,
   Plus,
   Trash2,
   User,
   Store,
   Edit3,
-  XCircle,
-  FileText,
   Activity,
   History
 } from "lucide-react";
-import { Button, cn } from "@/components/ui/Button";
+import { cn } from "@/components/ui/Button";
 import { Card, Input, Label, Select } from "@/components/ui/FormElements";
 import { Modal } from "@/components/ui/Modal";
 import { useOrders } from "@/hooks/useOrders";
@@ -31,17 +38,17 @@ import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { Order, Item } from "@/types";
 
-const STATUS_CHIPS: Record<string, { label: string; class: string }> = {
-  pending: { label: "รอยืนยัน", class: "border-amber-100 bg-amber-50 text-amber-600" },
-  buying: { label: "กำลังซื้อ", class: "border-blue-100 bg-blue-50 text-blue-600" },
-  sorting: { label: "ตรวจสอบ", class: "border-purple-100 bg-purple-50 text-purple-600" },
-  completed: { label: "สำเร็จแล้ว", class: "border-emerald-100 bg-emerald-50 text-emerald-600" },
-  cancelled: { label: "ยกเลิก", class: "border-red-100 bg-red-50 text-red-600" },
+const STATUS_MAP = {
+  pending: { label: "รอยืนยัน", tone: "amber" as const },
+  buying: { label: "กำลังซื้อ", tone: "blue" as const },
+  sorting: { label: "ตรวจสอบ", tone: "purple" as const },
+  completed: { label: "สำเร็จแล้ว", tone: "emerald" as const },
+  cancelled: { label: "ยกเลิก", tone: "red" as const },
 };
 
 export default function OrdersPage() {
   const { settings, loading: settingsLoading } = useSettings();
-  const { orders, loading, createOrder, updateOrder } = useOrders();
+  const { orders, loading, createOrder, updateOrder, deleteOrder } = useOrders();
   const { staff } = useStaff();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -155,172 +162,206 @@ export default function OrdersPage() {
     }
   };
 
+  const handleDeleteOrder = async (id: string, requesterName: string) => {
+    if (!confirm(`คุณต้องการลบออร์เดอร์ของ ${requesterName} ใช่หรือไม่?`)) return;
+    try {
+      await deleteOrder(id);
+    } catch (err) {
+      alert("เกิดข้อผิดพลาดในการลบออร์เดอร์");
+    }
+  };
+
   if (settingsLoading) {
     return <div className="flex flex-col items-center justify-center py-40 animate-pulse text-slate-300">
       <Loader2 className="h-12 w-12 animate-spin mb-4" />
-      <span className="text-sm font-black  tracking-widest">กำลังดึงข้อมูลมาให้ช้าๆ...</span>
+      <span className="text-sm   tracking-widest">กำลังดึงข้อมูลมาให้ช้าๆ...</span>
     </div>;
   }
 
   return (
-    <div className="admin-page">
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
-        <div className="space-y-1">
-          <h1 className="text-xl  text-slate-950 tracking-tight leading-none ">จัดการออร์เดอร์</h1>
-          <p className="text-sm  text-slate-500  tracking-[0.2em] leading-none">Global Procurement Control</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-slate-900" />
-            <Input
-              placeholder="ค้นหาบิลสั่งซื้อ..."
-              className="pl-11 h-11 bg-white border-2 border-slate-100 rounded-xl w-64 text-sm font-black shadow-sm outline-none font-sans"
-            />
-          </div>
-          <Button
-            onClick={handleOpenAdd}
-            className="h-11 px-6 rounded-xl bg-slate-950 text-white   text-sm tracking-widest flex items-center gap-2 active:bg-slate-800 shadow-lg"
-          >
-            <Plus className="w-4 h-4" /> สร้างบิล
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {stats.map((stat, i) => (
-          <div key={i} className="group relative overflow-hidden rounded-xl border-2 border-slate-100 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", stat.bg, stat.color)}>
-                <stat.icon className="h-5 w-5" />
+    <>
+      <AdminPage>
+        <AdminHeader
+          title="จัดการออร์เดอร์"
+          subtitle="ศูนย์กลางควบคุมและติดตามรายการสั่งซื้อสินค้าพัสดุพาร์ทเนอร์"
+          actions={
+            <div className="flex items-center gap-3">
+              <div className="relative group hidden md:block">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                <Input
+                  placeholder="ค้นหาบิลสั่งซื้อ..."
+                  className="pl-11 h-11 bg-white border border-slate-200 rounded-xl w-64 text-sm  focus:border-blue-400 transition-all font-sans"
+                />
               </div>
-              <div className="min-w-0">
-                <div className="text-sm  text-slate-500  tracking-widest leading-none mb-1 truncate">{stat.label}</div>
-                <div className="text-lg  text-slate-900 leading-none">{stat.value}</div>
-              </div>
+              <AdminPrimaryButton onClick={handleOpenAdd} icon={Plus}>
+                สร้างบิลใหม่
+              </AdminPrimaryButton>
             </div>
-          </div>
-        ))}
-      </div>
+          }
+        />
 
-      <div className="rounded-2xl border-2 border-slate-100 bg-white shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="admin-table">
-            <thead>
-              <tr className="bg-slate-50/80">
-                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100">BILL ID</th>
-                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100">REQUESTER</th>
-                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100">PARTNER STORE</th>
-                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100">BUYER</th>
-                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100 text-center">ITEMS</th>
-                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100">STATUS</th>
-                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100 text-right">DATE/TIME</th>
-                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100 text-center">ACTION</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={8} className="px-8 py-32 text-center opacity-30 animate-pulse font-bold text-sm tracking-widest text-slate-400 uppercase">Syncing Cloud Database...</td></tr>
-              ) : orders.length === 0 ? (
-                <tr><td colSpan={8} className="px-8 py-40 text-center text-slate-300">
-                  <ShoppingBag className="w-16 h-16 mx-auto mb-4 opacity-20" />
-                  <span className="text-xs font-bold tracking-widest uppercase">No Active Orders found</span>
-                </td></tr>
-              ) : (
-                orders.map((order) => (
-                  <tr key={order.id} className="group hover:bg-slate-50/80 transition-colors border-b border-slate-50 last:border-0">
-                    <td className="px-5 py-4 text-[11px] font-mono font-medium text-slate-400 group-hover:text-slate-900 transition-colors">#{order.id.slice(-6)}</td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600 shadow-sm">
-                          {order.requesterName?.substring(0, 2).toUpperCase()}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-slate-950 leading-tight">{order.requesterName}</span>
-                          <span className="text-[10px] font-medium text-slate-400 tracking-tight">พนักงานสั่ง</span>
-                        </div>
+        <AdminStatGrid>
+          <AdminStatCard
+            label="รายการรวม"
+            value={orders.length}
+            detail="ออร์เดอร์รวมที่บันทึกในระบบ"
+            icon={Package}
+            tone="slate"
+          />
+          <AdminStatCard
+            label="รอยืนยัน"
+            value={orders.filter((o) => o.status === "pending").length}
+            detail="คำขอซื้อที่ยังไม่ตอบรับ"
+            icon={Clock}
+            tone="amber"
+          />
+          <AdminStatCard
+            label="กำลังดำเนินการ"
+            value={orders.filter((o) => o.status === "buying").length}
+            detail="คำสั่งที่อยู่ระหว่างจัดหา"
+            icon={ShoppingCart}
+            tone="blue"
+          />
+          <AdminStatCard
+            label="เสร็จสิ้นแล้ว"
+            value={orders.filter((o) => o.status === "completed").length}
+            detail="รายการที่ปิดงานสมบูรณ์"
+            icon={History}
+            tone="emerald"
+          />
+        </AdminStatGrid>
+
+        <AdminPanel title="รายการออร์เดอร์" subtitle="สถานะการจัดหาพัสดุและวันเวลาที่ดำเนินการล่าสุด">
+          <div className="overflow-x-auto">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>เลขที่บิล</th>
+                  <th>ผู้สั่งซื้อ</th>
+                  <th>ร้านคู่ค้า</th>
+                  <th>ผู้จัดซื้อ</th>
+                  <th className="text-center">รายการ</th>
+                  <th>สถานะ</th>
+                  <th className="text-right">วันเวลา</th>
+                  <th className="text-center">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-16">
+                      <div className="flex flex-col items-center justify-center gap-3 text-slate-500">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                        <span className="text-sm ">กำลังโหลดรายการออร์เดอร์</span>
                       </div>
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-slate-950 leading-tight">{order.storeName || "ทั่วไป"}</span>
-                        <span className="text-[10px] font-medium text-slate-400 tracking-tight">ร้านค้าคู่ค้า</span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-4">
-                      {order.buyerId || order.buyerName ? (
-                        <div className="flex items-center gap-2">
-                          <div className="h-6 w-6 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[8px] font-bold text-emerald-600">
-                             {order.buyerName?.substring(0, 2).toUpperCase() || 
-                              staff.find(s => s.id === order.buyerId)?.name.substring(0, 2).toUpperCase() || "??"}
-                          </div>
-                          <span className="text-[12px] font-medium text-slate-600">
-                            {order.buyerName || staff.find(s => s.id === order.buyerId)?.name || "—"}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-50 text-slate-300 border border-slate-100">
-                          ยังไม่มีผู้ซื้อ
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-5 py-4 text-center">
-                      <span className="inline-flex h-6 px-2.5 items-center rounded-lg bg-slate-50 text-[11px] font-bold text-slate-500 border border-slate-100">
-                        {order.items.length} รายการ
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <button
-                        onClick={() => handleOpenManage(order)}
-                        className={cn(
-                          "inline-flex items-center rounded-lg px-2.5 py-1 border text-[11px] font-bold tracking-tight shadow-sm transition-all hover:scale-105 active:scale-95",
-                          STATUS_CHIPS[order.status]?.class || "bg-slate-50 text-slate-400 border-slate-200"
-                        )}
-                      >
-                        {STATUS_CHIPS[order.status]?.label}
-                      </button>
-                    </td>
-                    <td className="px-5 py-4 text-right">
-                      <div className="flex flex-col items-end">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Clock className="w-3 h-3 text-slate-400" />
-                          <span className="text-sm font-medium text-slate-950 leading-none">
-                            {order.createdAt ? format(order.createdAt.toDate(), "HH:mm", { locale: th }) : "—"}
-                          </span>
-                        </div>
-                        <span className="text-[10px] font-medium text-slate-400 tracking-wider">
-                          {order.createdAt ? format(order.createdAt.toDate(), "dd MMM yy", { locale: th }) : "—"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3 text-center flex items-center justify-center gap-1.5">
-                      <button
-                        onClick={() => handleOpenManage(order)}
-                        className="h-8 w-8 flex items-center justify-center rounded-lg bg-primary text-slate-950 shadow-sm shadow-primary/10 hover:bg-[#b0f53d]"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleOpenEdit(order)}
-                        className="h-8 w-8 flex items-center justify-center rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-950 hover:text-white"
-                      >
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                ) : orders.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="p-0">
+                      <AdminEmptyState
+                        icon={ShoppingBag}
+                        title="ยังไม่มีรายการสั่งซื้อ"
+                        description="เมื่อมีการสร้างบิลใหม่ รายการจะแสดงขึ้นที่ตารางนี้"
+                      />
+                    </td>
+                  </tr>
+                ) : (
+                  orders.map((order) => {
+                    const status = STATUS_MAP[order.status as keyof typeof STATUS_MAP] ?? STATUS_MAP.pending;
+
+                    return (
+                      <tr key={order.id} className="hover:bg-slate-50 transition-colors">
+                        <td>
+                          <span className="font-mono text-xs text-slate-700 font-bold">#{order.id.slice(-6).toUpperCase()}</span>
+                        </td>
+                        <td>
+                          <div className="flex items-center gap-2.5">
+                            <div className="h-8 w-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600">
+                              {order.requesterName?.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-black text-slate-900 leading-tight">{order.requesterName}</span>
+                              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-0.5">พนักงานสั่ง</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-black text-slate-900 leading-tight">{order.storeName || "ทั่วไป"}</span>
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-0.5">ร้านค้าคู่ค้า</span>
+                          </div>
+                        </td>
+                        <td>
+                          {order.buyerId || order.buyerName ? (
+                            <div className="flex items-center gap-2">
+                              <div className="h-6 w-6 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[8px] font-bold text-emerald-600 overflow-hidden">
+                                {order.buyerName?.substring(0, 2).toUpperCase() || "??"}
+                              </div>
+                              <span className="text-xs font-bold text-slate-600">
+                                {order.buyerName || "—"}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black bg-slate-100 text-slate-600 uppercase tracking-tighter">
+                              ไม่มีผู้ซื้อ
+                            </span>
+                          )}
+                        </td>
+                        <td className="text-center">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
+                            {order.items.length} รายการ
+                          </span>
+                        </td>
+                        <td>
+                          <AdminStatusChip label={status.label} tone={status.tone} />
+                        </td>
+                        <td className="text-right">
+                          <div className="space-y-1">
+                            <div className="text-sm font-black text-slate-900">
+                              {order.createdAt ? format(order.createdAt.toDate(), "HH:mm", { locale: th }) : "—"}
+                            </div>
+                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                              {order.createdAt ? format(order.createdAt.toDate(), "dd MMM yy", { locale: th }) : "—"}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <AdminSecondaryButton
+                              onClick={() => handleOpenManage(order)}
+                              icon={Edit3}
+                              className="h-8 w-8 p-0"
+                            />
+                            <AdminSecondaryButton
+                              onClick={() => handleOpenEdit(order)}
+                              icon={ChevronRight}
+                              className="h-8 w-8 p-0"
+                            />
+                            <AdminSecondaryButton
+                              onClick={() => handleDeleteOrder(order.id, order.requesterName || "")}
+                              icon={Trash2}
+                              className="h-8 w-8 p-0 text-red-500 hover:bg-red-50 border-red-100"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </AdminPanel>
+      </AdminPage>
 
       {/* Main Order Modal (Add/Edit) */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={<span className="font-black  tracking-widest text-[14px]">{isEditing ? "แก้ไขบิลสั่งซื้อ" : "สร้างบิลสั่งซื้อใหม่"}</span>}>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4 pt-4">
-            <div className="space-y-1.5">
-              <Label className="text-sm   tracking-widest text-slate-500">พนักงานผู้สั่งซื้อ (Requester)</Label>
-              <Select required value={formData.requesterId} className="h-11 border-2 border-slate-100 rounded-xl text-sm  text-slate-900" onChange={(e) => {
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={isEditing ? "แก้ไขบิลสั่งซื้อ" : "สร้างบิลสั่งซื้อใหม่"}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-3 pt-2">
+            <div className="space-y-1">
+              <Label className="text-xs font-bold text-slate-700 uppercase tracking-tight">พนักงานผู้สั่งซื้อ</Label>
+              <Select required value={formData.requesterId} className="h-10 border-2 border-slate-200 rounded-lg text-sm font-bold text-slate-900" onChange={(e) => {
                 const s = staff.find(st => st.id === e.target.value);
                 setFormData({ ...formData, requesterId: e.target.value, requesterName: s?.name || "" });
               }}>
@@ -328,50 +369,46 @@ export default function OrdersPage() {
                 {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm   tracking-widest text-slate-500">ชื่อร้านค้าคู่ค้า (Partner Store)</Label>
-              <Input placeholder="ระบุชื่อร้านค้า..." className="h-11 border-2 border-slate-100 rounded-xl text-sm  text-slate-900" value={formData.storeName} onChange={(e) => setFormData({ ...formData, storeName: e.target.value })} />
+            <div className="space-y-1">
+              <Label className="text-xs font-bold text-slate-700 uppercase tracking-tight">ชื่อร้านค้าคู่ค้า</Label>
+              <Input placeholder="ระบุชื่อร้านค้า..." className="h-10 border-2 border-slate-200 rounded-lg text-sm font-bold text-slate-900" value={formData.storeName} onChange={(e) => setFormData({ ...formData, storeName: e.target.value })} />
             </div>
 
-            <div className="pt-6 mt-6 border-t-2 border-slate-50 space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-black  tracking-[0.2em] text-slate-400">รายการสินค้า • ITEMS</Label>
-                <span className="text-sm font-black text-slate-300">{(formData.items || []).length} SELECTED</span>
+            <div className="pt-4 mt-4 border-t-2 border-slate-100 space-y-3">
+              <div className="flex items-center justify-between px-0.5">
+                <Label className="text-[10px] font-black tracking-widest text-slate-900 uppercase">รายการสินค้า • ITEMS</Label>
+                <span className="text-[10px] font-black text-blue-600">{(formData.items || []).length} SELECTED</span>
               </div>
 
-              <div className="flex gap-2">
-                <Input placeholder="ชื่อสินค้า..." className="flex-[2] h-11 bg-slate-50/50 border-2 border-slate-100 rounded-xl text-sm " value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} />
-                <Input type="number" placeholder="Qty" className="flex-1 h-11 bg-slate-50/50 border-2 border-slate-100 rounded-xl text-sm " value={newItem.qty} onChange={(e) => setNewItem({ ...newItem, qty: Number(e.target.value) })} />
-                <Select className="flex-1 h-11 bg-slate-50/50 border-2 border-slate-100 rounded-xl text-sm " value={newItem.unit} onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}>
+              <div className="flex gap-1.5">
+                <Input placeholder="ชื่อสินค้า..." className="flex-[2] h-10 bg-white border-2 border-slate-200 rounded-lg text-sm font-bold text-slate-900" value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} />
+                <Input type="number" placeholder="Qty" className="flex-[0.5] h-10 bg-white border-2 border-slate-200 rounded-lg text-sm font-bold text-slate-900 text-center" value={newItem.qty} onChange={(e) => setNewItem({ ...newItem, qty: Number(e.target.value) })} />
+                <Select className="flex-1 h-10 bg-white border-2 border-slate-200 rounded-lg text-xs font-bold text-slate-900" value={newItem.unit} onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}>
                   {settings.units.map(u => <option key={u} value={u}>{u}</option>)}
                 </Select>
-                <button type="button" onClick={handleAddItem} className="bg-slate-950 w-11 h-11 flex items-center justify-center rounded-xl text-primary transition-all active:scale-95 shadow-lg">
-                  <Plus className="w-5 h-5" />
-                </button>
+                <AdminPrimaryButton type="button" onClick={handleAddItem} icon={Plus} className="w-10 h-10 p-0 shrink-0" />
               </div>
 
-              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 flex flex-col pt-2 custom-scrollbar">
-                {(formData.items || []).length === 0 && <div className="text-center py-10 rounded-xl border-2 border-dashed border-slate-100 text-sm font-black text-slate-300  tracking-widest">No Items Added</div>}
+              <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1 flex flex-col pt-1 custom-scrollbar">
+                {(formData.items || []).length === 0 && <div className="text-center py-6 rounded-xl border-2 border-dashed border-slate-200 text-xs font-black text-slate-400 uppercase tracking-widest">เพิ่มสินค้าอย่างน้อย 1 รายการ</div>}
                 {(formData.items || []).map((item: Item) => (
-                  <div key={item.id} className="flex items-center justify-between p-3.5 rounded-xl border-2 border-slate-50 group hover:border-slate-100 transition-all bg-white shadow-sm">
+                  <div key={item.id} className="flex items-center justify-between p-2.5 rounded-lg border-2 border-slate-100 group transition-all bg-white hover:border-slate-200">
                     <div className="flex flex-col">
-                      <span className="text-sm  text-slate-950 leading-tight">{item.name}</span>
-                      <span className="text-sm font-semibold text-slate-500  tracking-widest mt-1">{item.qty} {item.unit}</span>
+                      <span className="text-sm font-black text-slate-900 leading-tight">{item.name}</span>
+                      <span className="text-[10px] font-black text-slate-600 uppercase tracking-wider mt-0.5">{item.qty} {item.unit}</span>
                     </div>
-                    <button type="button" onClick={() => handleRemoveItem(item.id)} className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-200 hover:bg-red-50 hover:text-red-500 transition-all">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <AdminSecondaryButton onClick={() => handleRemoveItem(item.id)} icon={Trash2} className="h-7 w-7 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50 border-none" />
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="flex gap-3 pt-6 border-t-2 border-slate-50">
-            <button type="button" className="flex-1 h-14 rounded-xl text-[12px] font-black  tracking-widest text-slate-400 hover:bg-slate-50 transition-all border-2 border-transparent" onClick={() => setIsModalOpen(false)}>ยกเลิก</button>
-            <button disabled={submitting} className="flex-[2] h-14 bg-slate-950 text-white text-sm font-black  tracking-[0.1em] rounded-xl flex items-center justify-center gap-3 shadow-xl active:scale-[0.98] transition-all">
-              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CheckCircle2 className="w-5 h-5 text-primary" /> {isEditing ? "อัปเดตบิล" : "สร้างออร์เดอร์ใหม่"}</>}
-            </button>
+          <div className="flex gap-2 pt-4 border-t-2 border-slate-100">
+            <AdminSecondaryButton className="flex-1 font-bold h-10 text-xs text-slate-700" onClick={() => setIsModalOpen(false)}>ยกเลิก</AdminSecondaryButton>
+            <AdminPrimaryButton submitting={submitting} icon={CheckCircle2} className="flex-[2] font-black h-10 text-xs">
+              {isEditing ? "อัปเดตบิล" : "สร้างออร์เดอร์"}
+            </AdminPrimaryButton>
           </div>
         </form>
       </Modal>
@@ -380,35 +417,35 @@ export default function OrdersPage() {
       <Modal
         isOpen={isManageModalOpen}
         onClose={() => setIsManageModalOpen(false)}
-        title={<span className="font-black  tracking-widest text-[14px]">ยืนยันการจัดซื้อสินค้า</span>}
+        title="จัดการสถานะสินค้า"
       >
-        <div className="space-y-6 pt-4">
-          <div className="flex items-center gap-4 border-b-2 border-slate-50 pb-6">
-            <div className="h-14 w-14 rounded-2xl bg-primary text-slate-950 flex items-center justify-center shadow-lg shadow-primary/10">
-              <Store className="h-7 w-7" />
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center gap-3 border-b-2 border-slate-100 pb-4">
+            <div className="h-10 w-10 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0">
+              <Store className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-lg  text-slate-950 leading-tight truncate  tracking-tight">{managingOrder?.storeName || "—"}</div>
-              <div className="text-sm  text-slate-500  tracking-widest flex items-center gap-1.5 mt-1.5">
-                <User className="h-3.5 w-3.5" />
-                Requester: {managingOrder?.requesterName}
+              <div className="text-sm font-black text-slate-900 leading-tight truncate">{managingOrder?.storeName || "ทั่วไป"}</div>
+              <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
+                <User className="h-3 w-3" />
+                ผู้ขอ: {managingOrder?.requesterName}
               </div>
             </div>
           </div>
-          <div className="space-y-3">
-            <div className="text-sm   text-slate-300 tracking-widest mb-1 px-1">Checklist • รายการสินค้า</div>
+          <div className="space-y-2">
+            <div className="text-[10px] font-black text-slate-900 tracking-widest uppercase px-1">Checklist • รายการสินค้า</div>
             {managedItems.map((item) => (
-              <div key={item.id} className="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50/30 space-y-4">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-base  text-slate-900 leading-tight flex-1">{item.name}</span>
-                  <span className="text-sm  text-slate-400  shrink-0">{item.qty} {item.unit}</span>
+              <div key={item.id} className="p-3 rounded-xl border-2 border-slate-100 bg-white space-y-3 shadow-sm">
+                <div className="flex items-center justify-between gap-4 px-1">
+                  <span className="text-sm font-bold text-slate-900 flex-1">{item.name}</span>
+                  <span className="text-xs font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md shrink-0">{item.qty} {item.unit}</span>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-1.5">
                   <button
                     onClick={() => updateManagedItemStatus(item.id!, "bought")}
                     className={cn(
-                      "h-11 rounded-xl px-2 text-sm   tracking-tight transition-all border-2",
-                      item.status === "bought" ? "bg-emerald-500 border-emerald-500 text-white shadow-md shadow-emerald-500/20" : "bg-white border-slate-100 text-slate-500 active:bg-slate-50"
+                      "h-9 rounded-lg px-2 text-[10px] font-black uppercase tracking-tighter transition-all border-2",
+                      item.status === "bought" ? "bg-emerald-600 border-emerald-600 text-white" : "bg-white border-slate-100 text-slate-400"
                     )}
                   >
                     เรียบร้อย
@@ -416,17 +453,17 @@ export default function OrdersPage() {
                   <button
                     onClick={() => updateManagedItemStatus(item.id!, "to_buy")}
                     className={cn(
-                      "h-10 rounded-xl px-2 text-sm font-black  tracking-tight transition-all border-2",
-                      item.status === "to_buy" ? "bg-slate-200 border-slate-200 text-slate-700 shadow-md" : "bg-white border-slate-100 text-slate-200"
+                      "h-9 rounded-lg px-2 text-[10px] font-black uppercase tracking-tighter transition-all border-2",
+                      item.status === "to_buy" ? "bg-slate-800 border-slate-800 text-white" : "bg-white border-slate-100 text-slate-400"
                     )}
                   >
-                    รอดำเนินการ
+                    รอซื้อ
                   </button>
                   <button
                     onClick={() => updateManagedItemStatus(item.id!, "cancelled")}
                     className={cn(
-                      "h-10 rounded-xl px-2 text-sm font-black  tracking-tight transition-all border-2",
-                      item.status === "cancelled" ? "bg-red-500 border-red-500 text-white shadow-md shadow-red-500/20" : "bg-white border-slate-100 text-slate-200"
+                      "h-9 rounded-lg px-2 text-[10px] font-black uppercase tracking-tighter transition-all border-2",
+                      item.status === "cancelled" ? "bg-red-600 border-red-600 text-white" : "bg-white border-slate-100 text-slate-400"
                     )}
                   >
                     ยกเลิก
@@ -436,28 +473,29 @@ export default function OrdersPage() {
             ))}
           </div>
 
-          <div className="space-y-2 pt-4 border-t-2 border-slate-50">
-            <div className="flex items-center justify-between mb-1.5 px-1">
-              <Label className="text-sm   tracking-widest text-slate-500">บันทึกเพิ่มเติม (Note)</Label>
-              {manageNote && <span className="text-sm  text-primary">EDITING</span>}
+          <div className="space-y-1.5 pt-3 border-t-2 border-slate-100">
+            <div className="flex items-center justify-between px-1">
+              <Label className="text-[10px] font-black tracking-widest text-slate-900 uppercase">บันทึกเพิ่มเติม</Label>
+              {manageNote && <span className="text-[9px] font-black text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">Modified</span>}
             </div>
             <textarea
               value={manageNote}
               onChange={(e) => setManageNote(e.target.value)}
               placeholder="ระบุรายละเอียดสำคัญ..."
-              className="w-full h-24 bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-sm  text-slate-900 focus:bg-white focus:border-blue-400 transition-all outline-none resize-none"
+              className="w-full h-20 bg-slate-50 border-2 border-slate-200 rounded-xl p-3 text-sm font-bold text-slate-900 focus:bg-white focus:border-blue-500 transition-all outline-none resize-none placeholder:text-slate-300"
             />
           </div>
 
-          <button
+          <AdminPrimaryButton
             onClick={saveManagedItems}
-            disabled={submitting}
-            className="w-full h-14 bg-slate-950 text-white text-[14px] font-black  tracking-[0.1em] rounded-xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl border-b-4 border-primary/20"
+            submitting={submitting}
+            icon={Activity}
+            className="w-full h-11 font-black text-sm"
           >
-            {submitting ? <Loader2 className="animate-spin h-5 w-5" /> : <><Activity className="h-5 w-5 text-primary" /> ยืนยันรายการ</>}
-          </button>
+            บันทึกสถานะจัดซื้อ
+          </AdminPrimaryButton>
         </div>
       </Modal>
-    </div>
+    </>
   );
 }
