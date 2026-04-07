@@ -74,10 +74,6 @@ export function buildNewOrderMessage(data: {
   mapUrl?: string;
   items?: { name: string; qty: number; unit: string }[];
 }): any {
-  const itemList = data.items
-    ? data.items.map((i) => `${i.name} ${i.qty} ${i.unit}`).join("\n")
-    : `${data.itemCount} รายการ`;
-
   const flex: any = {
     type: "flex",
     altText: `แจ้งเตือนคำสั่งซื้อจาก: ${data.requesterName}`,
@@ -132,15 +128,6 @@ export function buildNewOrderMessage(data: {
                   { type: "text", text: "จุดรับของ", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
                   { type: "text", text: data.location || "-", color: "#1E293B", size: "sm", flex: 7, wrap: true }
                 ]
-              },
-              {
-                type: "box",
-                layout: "baseline",
-                spacing: "md",
-                contents: [
-                  { type: "text", text: "รายการ", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
-                  { type: "text", text: itemList, color: "#1E293B", size: "sm", flex: 7, wrap: true }
-                ]
               }
             ]
           }
@@ -156,11 +143,41 @@ export function buildNewOrderMessage(data: {
     },
   };
 
-  if (data.note) {
-    flex.contents.body.contents[3].contents.push({
+  // Items Section with Horizontal Layout
+  if (data.items && data.items.length > 0) {
+    flex.contents.body.contents.push({
       type: "box",
       layout: "vertical",
-      margin: "md",
+      margin: "xl",
+      spacing: "xs",
+      contents: [
+        {
+          type: "text",
+          text: `รายการสินค้า (${data.items.length})`,
+          size: "xs",
+          color: "#64748B",
+          weight: "bold",
+          margin: "none"
+        },
+        ...data.items.map(i => ({
+          type: "box",
+          layout: "horizontal",
+          margin: "sm",
+          contents: [
+            { type: "text", text: i.name, size: "xs", color: "#475569", wrap: true, flex: 4 },
+            { type: "text", text: String(i.qty), size: "xs", color: "#1E293B", weight: "bold", align: "end", flex: 1 },
+            { type: "text", text: i.unit, size: "xs", color: "#64748B", align: "end", flex: 1 }
+          ]
+        }))
+      ]
+    });
+  }
+
+  if (data.note) {
+    flex.contents.body.contents.push({
+      type: "box",
+      layout: "vertical",
+      margin: "xl",
       paddingAll: "md",
       backgroundColor: "#F8FAFC",
       cornerRadius: "md",
@@ -317,12 +334,13 @@ export function buildCompletedOrderMessage(data: {
     color: "#F1F5F9"
   });
 
-  // Add Bought Items Section
+  // Add Bought Items Section with Horizontal Layout
   if (boughtItems.length > 0) {
     flex.contents.body.contents.push({
       type: "box",
       layout: "vertical",
       margin: "md",
+      spacing: "xs",
       contents: [
         {
           type: "text",
@@ -332,24 +350,27 @@ export function buildCompletedOrderMessage(data: {
           weight: "bold",
           margin: "sm"
         },
-        {
-          type: "text",
-          text: boughtItems.map(i => `• ${i.name} ${i.qty} ${i.unit}`).join("\n"),
-          size: "xs",
-          color: "#475569",
-          wrap: true,
-          margin: "xs"
-        }
+        ...boughtItems.map(i => ({
+          type: "box",
+          layout: "horizontal",
+          margin: "sm",
+          contents: [
+            { type: "text", text: i.name, size: "xs", color: "#475569", wrap: true, flex: 4 },
+            { type: "text", text: String(i.qty), size: "xs", color: "#1E293B", weight: "bold", align: "end", flex: 1 },
+            { type: "text", text: i.unit, size: "xs", color: "#64748B", align: "end", flex: 1 }
+          ]
+        }))
       ]
     });
   }
 
-  // Add Missing Items Section
+  // Add Missing Items Section with Horizontal Layout
   if (missingItems.length > 0) {
     flex.contents.body.contents.push({
       type: "box",
       layout: "vertical",
       margin: "md",
+      spacing: "xs",
       contents: [
         {
           type: "text",
@@ -359,14 +380,16 @@ export function buildCompletedOrderMessage(data: {
           weight: "bold",
           margin: "sm"
         },
-        {
-          type: "text",
-          text: missingItems.map(i => `• ${i.name} ${i.qty} ${i.unit}`).join("\n"),
-          size: "xs",
-          color: "#94A3B8",
-          wrap: true,
-          margin: "xs"
-        }
+        ...missingItems.map(i => ({
+          type: "box",
+          layout: "horizontal",
+          margin: "sm",
+          contents: [
+            { type: "text", text: i.name, size: "xs", color: "#94A3B8", wrap: true, flex: 4 },
+            { type: "text", text: String(i.qty), size: "xs", color: "#EF4444", weight: "bold", align: "end", flex: 1 },
+            { type: "text", text: i.unit, size: "xs", color: "#94A3B8", align: "end", flex: 1 }
+          ]
+        }))
       ]
     });
   }
