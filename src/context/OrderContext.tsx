@@ -10,6 +10,7 @@ interface OrderContextType {
     storeId: string;
     contact: string;
     storeName: string;
+    storeLocation: string;
     location: string;
     mapUrl?: string;
     items: OrderItem[];
@@ -26,6 +27,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     storeId: "",
     contact: "",
     storeName: "",
+    storeLocation: "",
     location: "",
     mapUrl: "",
     items: [],
@@ -36,6 +38,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       storeId: "",
       contact: "",
       storeName: "",
+      storeLocation: "",
       location: "",
       mapUrl: "",
       items: [],

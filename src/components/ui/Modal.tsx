@@ -25,7 +25,7 @@ export function Modal({
       />
       <div className="relative w-full max-w-lg rounded-xl border border-slate-200 bg-white p-5">
         <div className="mb-4 flex items-center justify-between gap-4 border-b border-slate-200 pb-4">
-          <div className="text-base font-semibold tracking-tight text-slate-900">
+          <div className="text-base text-slate-900">
             {title}
           </div>
           {showClose && (

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { 
   AdminEmptyState,
   AdminHeader,
@@ -10,20 +10,135 @@ import {
   AdminStatCard,
   AdminStatGrid,
 } from "@/components/admin/AdminUI";
-import { Store, MapPin, Phone, ShoppingCart, Plus, Loader2, Trash2, Edit2, ExternalLink, Building2, Search, CheckCircle2 } from "lucide-react";
-import { cn } from "@/components/ui/Button";
+import {
+  Store,
+  MapPin,
+  Phone,
+  ShoppingCart,
+  Plus,
+  Loader2,
+  Trash2,
+  Edit2,
+  ExternalLink,
+  Building2,
+  Search,
+  CheckCircle2,
+  Download,
+  Upload,
+} from "lucide-react";
 import { Input, Label, Select } from "@/components/ui/FormElements";
 import { Modal } from "@/components/ui/Modal";
 import { useStores } from "@/hooks/useStores";
 import { useSettings } from "@/hooks/useSettings";
 import { NetworkStore } from "@/types";
 
+const CSV_HEADERS = ["ชื่อร้านค้า", "ประเภทธุรกิจ", "ที่ตั้ง", "ลิงก์แผนที่", "เบอร์โทรศัพท์", "จำนวนออร์เดอร์"];
+
+const CSV_HEADER_MAP: Record<string, keyof Omit<NetworkStore, "id" | "createdAt" | "updatedAt">> = {
+  "ชื่อร้านค้า": "name",
+  name: "name",
+  store: "name",
+  "ประเภทธุรกิจ": "type",
+  type: "type",
+  category: "type",
+  "ที่ตั้ง": "location",
+  location: "location",
+  address: "location",
+  "ลิงก์แผนที่": "mapUrl",
+  mapurl: "mapUrl",
+  map: "mapUrl",
+  "เบอร์โทรศัพท์": "phone",
+  phone: "phone",
+  tel: "phone",
+  "จำนวนออร์เดอร์": "orders",
+  orders: "orders",
+};
+
+function normalizeHeader(value: string) {
+  return value.trim().toLowerCase().replace(/[\s_-]+/g, "");
+}
+
+function escapeCsvValue(value: string | number) {
+  const text = String(value ?? "");
+  if (/[",\n\r]/.test(text)) {
+    return `"${text.replace(/"/g, '""')}"`;
+  }
+  return text;
+}
+
+function parseCsv(text: string) {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i];
+
+    if (char === '"') {
+      if (inQuotes && text[i + 1] === '"') {
+        cell += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === "," && !inQuotes) {
+      row.push(cell);
+      cell = "";
+      continue;
+    }
+
+    if ((char === "\n" || char === "\r") && !inQuotes) {
+      if (char === "\r" && text[i + 1] === "\n") {
+        i += 1;
+      }
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = "";
+      continue;
+    }
+
+    cell += char;
+  }
+
+  if (cell.length > 0 || row.length > 0) {
+    row.push(cell);
+    rows.push(row);
+  }
+
+  return rows.filter((currentRow) => currentRow.some((value) => value.trim() !== ""));
+}
+
+function decodeCsvFile(buffer: ArrayBuffer) {
+  const bytes = new Uint8Array(buffer);
+
+  if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+    return new TextDecoder("utf-8").decode(buffer);
+  }
+
+  if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+    return new TextDecoder("utf-16le").decode(buffer);
+  }
+
+  if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) {
+    return new TextDecoder("utf-16be").decode(buffer);
+  }
+
+  return new TextDecoder("utf-8").decode(buffer);
+}
+
 export default function StoresPage() {
   const { stores, loading, addStore, updateStore, deleteStore } = useStores();
   const { settings } = useSettings();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -95,6 +210,122 @@ export default function StoresPage() {
     }
   };
 
+  const handleExportCsv = () => {
+    const rows = [
+      CSV_HEADERS,
+      ...stores.map((shop) => [
+        shop.name || "",
+        shop.type || "",
+        shop.location || "",
+        shop.mapUrl || "",
+        shop.phone || "",
+        String(shop.orders || 0),
+      ]),
+    ];
+
+    const csvContent = rows
+      .map((row) => row.map((value) => escapeCsvValue(value)).join(","))
+      .join("\r\n");
+
+    const blob = new Blob([`\uFEFF${csvContent}`], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "stores-export.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImportCsv = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+
+    try {
+      const text = decodeCsvFile(await file.arrayBuffer()).replace(/^\uFEFF/, "");
+      const rows = parseCsv(text);
+
+      if (rows.length < 2) {
+        alert("ไม่พบข้อมูลในไฟล์ CSV");
+        return;
+      }
+
+      const headerRow = rows[0].map((header) => normalizeHeader(header));
+      const fieldIndexes = headerRow.reduce<Record<string, number>>((acc, header, index) => {
+        const field = CSV_HEADER_MAP[header];
+        if (field) {
+          acc[field] = index;
+        }
+        return acc;
+      }, {});
+
+      if (fieldIndexes.name === undefined) {
+        alert("ไฟล์ CSV ต้องมีคอลัมน์ชื่อร้านค้า หรือ name");
+        return;
+      }
+
+      const existingKeys = new Set(
+        stores.map((shop) => `${shop.name.trim().toLowerCase()}|${(shop.location || "").trim().toLowerCase()}`),
+      );
+
+      let importedCount = 0;
+      let skippedCount = 0;
+      const pendingCreates: Array<Promise<unknown>> = [];
+
+      for (const row of rows.slice(1)) {
+        const name = row[fieldIndexes.name]?.trim() || "";
+        if (!name) {
+          skippedCount += 1;
+          continue;
+        }
+
+        const location = fieldIndexes.location !== undefined ? row[fieldIndexes.location]?.trim() || "" : "";
+        const uniqueKey = `${name.toLowerCase()}|${location.toLowerCase()}`;
+        if (existingKeys.has(uniqueKey)) {
+          skippedCount += 1;
+          continue;
+        }
+
+        const ordersValue = fieldIndexes.orders !== undefined ? row[fieldIndexes.orders]?.trim() || "0" : "0";
+        const parsedOrders = Number.parseInt(ordersValue, 10);
+
+        const storeData: Omit<NetworkStore, "id"> = {
+          name,
+          type: fieldIndexes.type !== undefined ? row[fieldIndexes.type]?.trim() || settings.categories[0] || "" : settings.categories[0] || "",
+          location,
+          mapUrl: fieldIndexes.mapUrl !== undefined ? row[fieldIndexes.mapUrl]?.trim() || "" : "",
+          phone: fieldIndexes.phone !== undefined ? row[fieldIndexes.phone]?.trim() || "" : "",
+          orders: Number.isNaN(parsedOrders) ? 0 : parsedOrders,
+        };
+
+        existingKeys.add(uniqueKey);
+        pendingCreates.push(addStore(storeData));
+        importedCount += 1;
+      }
+
+      if (pendingCreates.length > 0) {
+        await Promise.all(pendingCreates);
+      }
+
+      alert(`นำเข้าข้อมูลแล้ว ${importedCount} รายการ${skippedCount > 0 ? `, ข้าม ${skippedCount} รายการ` : ""}`);
+    } catch (error) {
+      console.error("CSV import error:", error);
+      alert("นำเข้า CSV ไม่สำเร็จ");
+    } finally {
+      event.target.value = "";
+      setImporting(false);
+    }
+  };
+
   return (
     <>
       <AdminPage>
@@ -104,19 +335,33 @@ export default function StoresPage() {
           actions={
             <div className="flex items-center gap-3">
               <div className="relative group hidden md:block">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-slate-700 transition-colors" />
                 <Input
                   placeholder="ค้นหาร้านค้า..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-11 h-11 bg-white border border-slate-200 rounded-xl w-64 text-sm font-medium focus:border-blue-400 transition-all font-sans"
+                  className="pl-11 h-11 w-64 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 transition-all focus:border-slate-400"
                 />
               </div>
+              <AdminSecondaryButton type="button" onClick={handleExportCsv} icon={Download}>
+                ส่งออก CSV
+              </AdminSecondaryButton>
+              <AdminSecondaryButton type="button" onClick={handleImportButtonClick} icon={Upload} disabled={importing}>
+                {importing ? "กำลังนำเข้า..." : "นำเข้า CSV"}
+              </AdminSecondaryButton>
               <AdminPrimaryButton onClick={handleOpenAdd} icon={Store}>
                 เพิ่มร้านค้าใหม่
               </AdminPrimaryButton>
             </div>
           }
+        />
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv,text/csv"
+          className="hidden"
+          onChange={handleImportCsv}
         />
 
         <AdminStatGrid>
@@ -169,7 +414,7 @@ export default function StoresPage() {
                     <td colSpan={6} className="px-6 py-16">
                       <div className="flex flex-col items-center justify-center gap-3 text-slate-500">
                         <Loader2 className="h-6 w-6 animate-spin" />
-                        <span className="text-sm font-medium">กำลังโหลดข้อมูล</span>
+                        <span className="text-sm">กำลังโหลดข้อมูล</span>
                       </div>
                     </td>
                   </tr>
@@ -192,13 +437,13 @@ export default function StoresPage() {
                             <Store className="h-5 w-5" />
                           </div>
                           <div className="min-w-0">
-                            <div className="font-bold text-slate-900 leading-tight uppercase tracking-tight">{shop.name}</div>
-                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">ID: {shop.id.slice(-6).toUpperCase()}</div>
+                            <div className="text-sm text-slate-900 leading-tight">{shop.name}</div>
+                            <div className="mt-1 text-xs text-slate-500">ID: {shop.id.slice(-6).toUpperCase()}</div>
                           </div>
                         </div>
                       </td>
                       <td>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-sm text-slate-600">
                           {shop.type}
                         </span>
                       </td>
@@ -224,7 +469,7 @@ export default function StoresPage() {
                         </div>
                       </td>
                       <td className="text-center">
-                        <span className="text-sm font-bold text-slate-900">{shop.orders || 0}</span>
+                        <span className="text-sm text-slate-900">{shop.orders || 0}</span>
                       </td>
                       <td className="text-right">
                         <div className="flex items-center justify-end gap-2">
@@ -254,11 +499,11 @@ export default function StoresPage() {
         <form onSubmit={handleSubmit} className="space-y-6 pt-4">
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-500">ชื่อร้านค้า</Label>
+              <Label className="text-sm text-slate-700">ชื่อร้านค้า</Label>
               <Input 
                 required 
                 placeholder="ระบุชื่อที่จะใช้แสดงผลในระบบ" 
-                className="h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900"
+                className="h-11 rounded-xl border border-slate-200 text-sm text-slate-900"
                 value={formData.name} 
                 onChange={(e) => setFormData({...formData, name: e.target.value})} 
               />
@@ -266,9 +511,9 @@ export default function StoresPage() {
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-500">ประเภทธุรกิจ</Label>
+                <Label className="text-sm text-slate-700">ประเภทธุรกิจ</Label>
                 <Select 
-                  className="h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900"
+                  className="h-11 rounded-xl border border-slate-200 text-sm text-slate-900"
                   value={formData.type} 
                   onChange={(e) => setFormData({...formData, type: e.target.value})}
                 >
@@ -277,10 +522,10 @@ export default function StoresPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-500">เบอร์โทรศัพท์ติดต่อ</Label>
+                <Label className="text-sm text-slate-700">เบอร์โทรศัพท์ติดต่อ</Label>
                 <Input 
                   placeholder="เช่น 086-XXX-XXXX" 
-                  className="h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900"
+                  className="h-11 rounded-xl border border-slate-200 text-sm text-slate-900"
                   value={formData.phone} 
                   onChange={(e) => setFormData({...formData, phone: e.target.value})} 
                 />
@@ -288,22 +533,22 @@ export default function StoresPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-500">ที่ตั้งร้านค้า / พื้นที่ให้บริการ</Label>
+              <Label className="text-sm text-slate-700">ที่ตั้งร้านค้า / พื้นที่ให้บริการ</Label>
               <Input 
                 placeholder="เช่น กทม., สมุทรปราการ..." 
-                className="h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900"
+                className="h-11 rounded-xl border border-slate-200 text-sm text-slate-900"
                 value={formData.location} 
                 onChange={(e) => setFormData({...formData, location: e.target.value})} 
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-500">พิกัดแผนที่ (GOOGLE MAPS URL)</Label>
+              <Label className="text-sm text-slate-700">พิกัดแผนที่ (GOOGLE MAPS URL)</Label>
               <div className="relative group">
-                <ExternalLink className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-blue-500" />
+                <ExternalLink className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-slate-700" />
                 <Input 
                   placeholder="https://maps.google.com/..." 
-                  className="pl-11 h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900"
+                  className="pl-11 h-11 rounded-xl border border-slate-200 text-sm text-slate-900"
                   value={formData.mapUrl} 
                   onChange={(e) => setFormData({...formData, mapUrl: e.target.value})} 
                 />
@@ -313,6 +558,7 @@ export default function StoresPage() {
 
            <div className="flex gap-3 pt-6 border-t border-slate-100 mt-4">
              <AdminSecondaryButton 
+               type="button"
                className="flex-1" 
                onClick={() => setIsModalOpen(false)}
              >

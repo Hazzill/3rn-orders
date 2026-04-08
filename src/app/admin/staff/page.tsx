@@ -111,12 +111,12 @@ export default function StaffPage() {
           actions={
             <div className="flex items-center gap-3">
               <div className="relative group hidden md:block">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-slate-700 transition-colors" />
                 <Input
                   placeholder="ค้นหาพนักงาน..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-11 h-11 bg-white border border-slate-200 rounded-xl w-64 text-sm font-medium focus:border-blue-400 transition-all font-sans"
+                  className="pl-11 h-11 w-64 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 transition-all focus:border-slate-400"
                 />
               </div>
               <AdminPrimaryButton onClick={handleOpenAdd} icon={UserPlus}>
@@ -176,7 +176,7 @@ export default function StaffPage() {
                     <td colSpan={6} className="px-6 py-16">
                       <div className="flex flex-col items-center justify-center gap-3 text-slate-500">
                         <Loader2 className="h-6 w-6 animate-spin" />
-                        <span className="text-sm font-medium">กำลังโหลดข้อมูล</span>
+                        <span className="text-sm">กำลังโหลดข้อมูล</span>
                       </div>
                     </td>
                   </tr>
@@ -203,15 +203,15 @@ export default function StaffPage() {
                             )}
                           </div>
                           <div className="min-w-0">
-                            <div className="font-bold text-slate-900 leading-tight uppercase tracking-tight">{member.name}</div>
-                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">@{member.username || member.id.slice(-6).toUpperCase()}</div>
+                            <div className="text-sm text-slate-900 leading-tight">{member.name}</div>
+                            <div className="mt-1 text-xs text-slate-500">@{member.username || member.id.slice(-6).toUpperCase()}</div>
                           </div>
                         </div>
                       </td>
                       <td>
                         <div className="flex items-center gap-2">
                           <ShieldCheck className={cn("h-4 w-4", member.role === "Admin" ? "text-primary border-primary" : "text-slate-300")} />
-                          <span className="text-sm font-bold text-slate-700">{member.role}</span>
+                          <span className="text-sm text-slate-700">{member.role}</span>
                         </div>
                       </td>
                       <td>
@@ -220,24 +220,25 @@ export default function StaffPage() {
                           tone={member.status === "active" ? "emerald" : "slate"}
                         />
                       </td>
-                      <td className="font-mono text-xs text-slate-500">
+                      <td className="text-sm text-slate-500">
                         {member.phone || "—"}
                       </td>
                       <td>
                         {member.lineUserId ? (
                           <div className="flex flex-col gap-1 items-start group/line">
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#06C755]/10 text-[#06C755] text-[9px] font-black uppercase tracking-widest leading-none">
+                            <span className="inline-flex items-center gap-1.5 rounded-md bg-[#06C755]/10 px-2 py-1 text-xs leading-none text-[#06C755]">
                               <Link2 className="h-3 w-3" /> CONNECTED
                             </span>
                             <button
                               onClick={() => handleUnlinkLine(member)}
-                              className="text-[9px] font-black text-red-400 uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
+                              type="button"
+                              className="whitespace-nowrap text-xs text-red-500 opacity-0 transition-opacity group-hover:opacity-100"
                             >
                               UNLINK ACCOUNT ?
                             </button>
                           </div>
                         ) : (
-                          <span className="text-[11px] font-medium text-slate-300 italic">ไม่ได้เชื่อมต่อ</span>
+                          <span className="text-sm text-slate-400">ไม่ได้เชื่อมต่อ</span>
                         )}
                       </td>
                       <td className="text-right">
@@ -257,24 +258,24 @@ export default function StaffPage() {
         <form onSubmit={handleSubmit} className="space-y-6 pt-4">
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-500">ชื่อ-นามสกุล</Label>
-              <Input required placeholder="ระบุชื่อจริงภาษาไทย" className="h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+              <Label className="text-sm text-slate-700">ชื่อ-นามสกุล</Label>
+              <Input required placeholder="ระบุชื่อจริงภาษาไทย" className="h-11 rounded-xl border border-slate-200 text-sm text-slate-900" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-500">ชื่อผู้ใช้งาน (LOGIN ID)</Label>
-                <Input required placeholder="somchai_p" className="h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} />
+                <Label className="text-sm text-slate-700">ชื่อผู้ใช้งาน (LOGIN ID)</Label>
+                <Input required placeholder="somchai_p" className="h-11 rounded-xl border border-slate-200 text-sm text-slate-900" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-500">เบอร์โทรศัพท์</Label>
-                <Input placeholder="08X-XXX-XXXX" className="h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                <Label className="text-sm text-slate-700">เบอร์โทรศัพท์</Label>
+                <Input placeholder="08X-XXX-XXXX" className="h-11 rounded-xl border border-slate-200 text-sm text-slate-900" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-500">บทบาทและความรับผิดชอบ</Label>
-              <Select className="h-11 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900" value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} >
+              <Label className="text-sm text-slate-700">บทบาทและความรับผิดชอบ</Label>
+              <Select className="h-11 rounded-xl border border-slate-200 text-sm text-slate-900" value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} >
                 <option value="ผู้สั่งซื้อ">📁 ผู้สั่งซื้อ (Orderer)</option>
                 <option value="พนักงานจัดซื้อ">🛒 พนักงานจัดซื้อ (Buyer)</option>
                 <option value="Admin">⚡ ผู้ดูแลระบบ (Admin)</option>
@@ -283,7 +284,7 @@ export default function StaffPage() {
           </div>
 
           <div className="flex gap-3 pt-6 border-t border-slate-100 mt-4">
-            <AdminSecondaryButton className="flex-1" onClick={() => setIsModalOpen(false)}>ยกเลิก</AdminSecondaryButton>
+            <AdminSecondaryButton type="button" className="flex-1" onClick={() => setIsModalOpen(false)}>ยกเลิก</AdminSecondaryButton>
             <AdminPrimaryButton submitting={submitting} icon={CheckCircle2} className="flex-[2]">
               {isEditing ? "บันทึกแก้ไข" : "ยืนยันลงทะเบียน"}
             </AdminPrimaryButton>

@@ -110,7 +110,7 @@ export default function SettingsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-40 animate-pulse text-slate-300">
         <Loader2 className="w-12 h-12 animate-spin mb-4" />
-        <span className="text-sm font-medium tracking-wide">กำลังโหลดข้อมูลการตั้งค่า...</span>
+        <span className="text-sm">กำลังโหลดข้อมูลการตั้งค่า...</span>
       </div>
     );
   }
@@ -119,15 +119,15 @@ export default function SettingsPage() {
     <div className="admin-page">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
         <div className="space-y-1">
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">ตั้งค่าระบบ</h1>
-          <p className="text-xs text-slate-500 font-medium tracking-wide">พารามิเตอร์หลักของระบบ</p>
+          <h1 className="text-xl text-slate-900">ตั้งค่าระบบ</h1>
+          <p className="text-sm text-slate-500">พารามิเตอร์หลักของระบบ</p>
         </div>
         <Button
           onClick={handleSave}
           disabled={saving}
-          className="h-11 px-8 rounded-xl bg-slate-900 text-white text-sm font-semibold flex items-center gap-2.5 hover:bg-black transition-all shadow-md active:scale-95"
+          className="flex h-11 items-center gap-2.5 rounded-xl bg-slate-900 px-8 text-sm text-white shadow-md transition-all hover:bg-black active:scale-95"
         >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 text-primary" />}
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 text-white" />}
           บันทึกการตั้งค่า
         </Button>
       </div>
@@ -141,27 +141,27 @@ export default function SettingsPage() {
                 <Briefcase className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <h4 className="text-base font-bold text-slate-900 leading-tight">เอกลักษณ์องค์กร</h4>
-                <span className="text-[10px] text-slate-400 font-medium">การตั้งค่าข้อมูลทั่วไป</span>
+                <h4 className="text-base text-slate-900 leading-tight">เอกลักษณ์องค์กร</h4>
+                <span className="text-sm text-slate-500">การตั้งค่าข้อมูลทั่วไป</span>
               </div>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label className="text-sm font-semibold text-slate-500">ชื่อระบบ (SYSTEM ID)</Label>
+                <Label className="text-sm text-slate-700">ชื่อระบบ (SYSTEM ID)</Label>
                 <Input
                   value={localSettings.systemName}
                   onChange={(e) => setLocalSettings({ ...localSettings, systemName: e.target.value })}
-                  className="h-11 border border-slate-200 bg-slate-50/30 rounded-xl text-sm font-semibold text-slate-900 focus:bg-white focus:border-blue-400 transition-all font-sans"
+                  className="h-11 rounded-xl border border-slate-200 bg-slate-50/30 text-sm text-slate-900 transition-all focus:bg-white focus:border-slate-400"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-sm font-semibold text-slate-500">ชื่อนิติบุคคล / บริษัท</Label>
+                <Label className="text-sm text-slate-700">ชื่อนิติบุคคล / บริษัท</Label>
                 <Input
                   value={localSettings.companyName}
                   onChange={(e) => setLocalSettings({ ...localSettings, companyName: e.target.value })}
-                  className="h-11 border border-slate-200 bg-slate-50/30 rounded-xl text-sm font-semibold text-slate-900 focus:bg-white focus:border-blue-400 transition-all font-sans"
+                  className="h-11 rounded-xl border border-slate-200 bg-slate-50/30 text-sm text-slate-900 transition-all focus:bg-white focus:border-slate-400"
                 />
               </div>
             </div>
@@ -173,8 +173,8 @@ export default function SettingsPage() {
                 <BellRing className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <h4 className="text-base font-bold text-slate-900 leading-tight">ฟีเจอร์หลัก</h4>
-                <span className="text-[10px] text-slate-400 font-medium">จัดการคุณสมบัติหลัก</span>
+                <h4 className="text-base text-slate-900 leading-tight">ฟีเจอร์หลัก</h4>
+                <span className="text-sm text-slate-500">จัดการคุณสมบัติหลัก</span>
               </div>
             </div>
 
@@ -184,8 +184,9 @@ export default function SettingsPage() {
                 { id: 'orderFilteringEnabled', label: 'การคัดกรองออเดอร์แม่นยำ' }
               ].map((opt) => (
                 <div key={opt.id} className="flex items-center justify-between p-4 bg-slate-50/50 rounded-xl border border-slate-100">
-                  <span className="text-sm font-semibold text-slate-700 tracking-tight">{opt.label}</span>
+                  <span className="text-sm text-slate-700">{opt.label}</span>
                   <button
+                    type="button"
                     onClick={() => toggleOption(opt.id as any)}
                     className={cn(
                       "w-11 h-6 rounded-full relative transition-all duration-300",
@@ -208,19 +209,19 @@ export default function SettingsPage() {
                 <MessageSquare className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <h4 className="text-base font-bold text-slate-900">LINE Group API</h4>
-                <span className="text-[10px] text-slate-400 font-medium">การแจ้งเตือนกลุ่มหลัก</span>
+                <h4 className="text-base text-slate-900">LINE Group API</h4>
+                <span className="text-sm text-slate-500">การแจ้งเตือนกลุ่มหลัก</span>
               </div>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label className="text-sm font-semibold text-slate-500">รหัสกลุ่มแจ้งเตือน (GROUP ID)</Label>
+                <Label className="text-sm text-slate-700">รหัสกลุ่มแจ้งเตือน (GROUP ID)</Label>
                 <Input
                   value={localSettings.lineGroupId || ""}
                   onChange={(e) => setLocalSettings({ ...localSettings, lineGroupId: e.target.value })}
                   placeholder="Cxxxxxxxxxxxxxxxx..."
-                  className="h-11 border border-slate-200 bg-slate-50/30 rounded-xl text-sm font-semibold text-slate-900 focus:bg-white focus:border-blue-400 transition-all font-mono"
+                  className="h-11 rounded-xl border border-slate-200 bg-slate-50/30 text-sm text-slate-900 transition-all focus:bg-white focus:border-slate-400"
                 />
               </div>
 
@@ -232,9 +233,10 @@ export default function SettingsPage() {
                   <div key={evt.id} className="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-100 group hover:border-slate-200 transition-all">
                     <div className="flex items-center gap-3">
                       <evt.icon className={cn("h-4 w-4", evt.color)} />
-                      <span className="text-xs font-bold text-slate-800 tracking-wide">{evt.label}</span>
+                      <span className="text-sm text-slate-800">{evt.label}</span>
                     </div>
                     <button
+                      type="button"
                       onClick={() => toggleOption(evt.id as any)}
                       className={cn(
                         "h-4 w-8 rounded-full relative transition-all duration-300",
@@ -252,10 +254,11 @@ export default function SettingsPage() {
 
               <div className="pt-2">
                 <button
+                  type="button"
                   onClick={handleTestNotification}
                   disabled={testSending || !localSettings.lineGroupId?.trim()}
                   className={cn(
-                    "flex w-full h-11 items-center justify-center gap-2.5 rounded-xl text-sm font-bold transition-all active:scale-95",
+                    "flex h-11 w-full items-center justify-center gap-2.5 rounded-xl text-sm transition-all active:scale-95",
                     localSettings.lineGroupId?.trim()
                       ? "bg-[#06C755] text-white shadow-lg shadow-[#06C755]/10 hover:brightness-105"
                       : "bg-slate-50 text-slate-300 cursor-not-allowed border border-slate-100"
@@ -267,7 +270,7 @@ export default function SettingsPage() {
               </div>
 
               {testResult && (
-                <div className={cn("p-4 rounded-xl text-xs font-bold bg-slate-50 text-center border", testResult.ok ? "border-emerald-100 text-emerald-600" : "border-red-100 text-red-500")}>
+                <div className={cn("rounded-xl border bg-slate-50 p-4 text-sm text-center", testResult.ok ? "border-emerald-100 text-emerald-600" : "border-red-100 text-red-500")}>
                   {testResult.msg}
                 </div>
               )}
@@ -285,8 +288,8 @@ export default function SettingsPage() {
                   <Tag className="h-6 w-6" />
                 </div>
                 <div className="min-w-0">
-                  <h4 className="text-lg font-bold text-slate-900 leading-tight">คลังหมวดหมู่สินค้า</h4>
-                  <span className="text-xs font-medium text-slate-400 mt-0.5 block">จัดการหมวดหมู่สินค้าส่วนกลาง</span>
+                  <h4 className="text-lg text-slate-900 leading-tight">คลังหมวดหมู่สินค้า</h4>
+                  <span className="mt-0.5 block text-sm text-slate-500">จัดการหมวดหมู่สินค้าส่วนกลาง</span>
                 </div>
               </div>
             </div>
@@ -294,13 +297,14 @@ export default function SettingsPage() {
             <div className="flex gap-2 max-w-md mb-8">
               <Input
                 placeholder="ระบุหมวดหมู่ใหม่..."
-                className="h-11 border border-slate-200 bg-slate-50/50 rounded-xl text-sm font-semibold text-slate-900 focus:bg-white focus:border-blue-400 transition-all font-sans"
+                className="h-11 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-900 transition-all focus:bg-white focus:border-slate-400"
                 value={newCat}
                 onChange={(e) => setNewCat(e.target.value)}
               />
               <button
+                type="button"
                 onClick={() => addItem('categories', newCat, setNewCat)}
-                className="h-11 w-11 shrink-0 bg-slate-900 rounded-xl flex items-center justify-center text-primary shadow-lg hover:bg-black transition-all active:scale-95"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white shadow-lg transition-all hover:bg-black active:scale-95"
               >
                 <Plus className="h-5 w-5" />
               </button>
@@ -308,14 +312,15 @@ export default function SettingsPage() {
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {localSettings.categories.length === 0 && (
-                <div className="col-span-full py-12 text-center border-2 border-dashed border-slate-100 rounded-3xl text-sm font-medium text-slate-300 italic tracking-wide">
+                <div className="col-span-full rounded-3xl border-2 border-dashed border-slate-100 py-12 text-center text-sm text-slate-400">
                   ไม่มีข้อมูลหมวดหมู่สินค้า
                 </div>
               )}
               {localSettings.categories.map((cat) => (
                 <div key={cat} className="group relative flex items-center justify-between p-4 bg-slate-50/50 border border-slate-100 rounded-2xl hover:border-primary/50 hover:bg-white transition-all">
-                  <span className="text-sm font-bold text-slate-700">{cat}</span>
+                  <span className="text-sm text-slate-700">{cat}</span>
                   <button
+                    type="button"
                     onClick={() => removeItem('categories', cat)}
                     className="h-8 w-8 rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
                   >
@@ -334,8 +339,8 @@ export default function SettingsPage() {
                   <Box className="h-6 w-6" />
                 </div>
                 <div className="min-w-0">
-                  <h4 className="text-lg font-bold text-slate-900 leading-tight">มาตราส่วน / หน่วยนับ</h4>
-                  <span className="text-xs font-medium text-slate-400 mt-0.5 block">ทะเบียนหน่วยนับสินค้ามาตรฐาน</span>
+                  <h4 className="text-lg text-slate-900 leading-tight">มาตราส่วน / หน่วยนับ</h4>
+                  <span className="mt-0.5 block text-sm text-slate-500">ทะเบียนหน่วยนับสินค้ามาตรฐาน</span>
                 </div>
               </div>
             </div>
@@ -343,13 +348,14 @@ export default function SettingsPage() {
             <div className="flex gap-2 max-w-md mb-8">
               <Input
                 placeholder="เช่น ลัง, กิโล, ม้วน..."
-                className="h-11 border border-slate-200 bg-slate-50/50 rounded-xl text-sm font-semibold text-slate-900 focus:bg-white focus:border-blue-400 transition-all font-sans"
+                className="h-11 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-900 transition-all focus:bg-white focus:border-slate-400"
                 value={newUnit}
                 onChange={(e) => setNewUnit(e.target.value)}
               />
               <button
+                type="button"
                 onClick={() => addItem('units', newUnit, setNewUnit)}
-                className="h-11 w-11 shrink-0 bg-slate-900 rounded-xl flex items-center justify-center text-primary shadow-lg hover:bg-black transition-all active:scale-95"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white shadow-lg transition-all hover:bg-black active:scale-95"
               >
                 <Plus className="h-5 w-5" />
               </button>
@@ -357,14 +363,15 @@ export default function SettingsPage() {
 
             <div className="flex flex-wrap gap-3">
               {localSettings.units.length === 0 && (
-                <div className="w-full py-12 text-center border-2 border-dashed border-slate-100 rounded-3xl text-sm font-medium text-slate-300 italic tracking-wide">
+                <div className="w-full rounded-3xl border-2 border-dashed border-slate-100 py-12 text-center text-sm text-slate-400">
                   ไม่มีข้อมูลหน่วยนับ
                 </div>
               )}
               {localSettings.units.map((unit) => (
                 <div key={unit} className="group relative px-6 py-3 bg-slate-50/80 border border-slate-100 hover:border-primary/30 hover:bg-white rounded-2xl flex items-center gap-3 transition-all cursor-default">
-                  <span className="text-base font-bold text-slate-700 tracking-wide">{unit}</span>
+                  <span className="text-base text-slate-700">{unit}</span>
                   <button
+                    type="button"
                     onClick={() => removeItem('units', unit)}
                     className="h-6 w-0 flex items-center justify-center text-red-400 overflow-hidden group-hover:w-6 transition-all"
                   >
@@ -383,7 +390,7 @@ export default function SettingsPage() {
           <Globe className="h-4 w-4" />
           <ShieldAlert className="h-4 w-4" />
         </div>
-        <p className="text-xs font-medium text-slate-400 tracking-widest uppercase">ระบบบริหารจัดการทรัพยากรองค์กร v2.9.2</p>
+        <p className="text-sm text-slate-400">ระบบบริหารจัดการทรัพยากรองค์กร v2.9.2</p>
       </div>
     </div>
   );

@@ -6,6 +6,8 @@ import MobileHeader from "@/components/mobile/MobileNav";
 import { Button, cn } from "@/components/ui/Button";
 import {
   Package,
+  Store,
+  MapPin,
   Loader2,
   CheckCircle2,
   Clock,
@@ -22,6 +24,7 @@ import { useRouter } from "next/navigation";
 import { useOrders } from "@/hooks/useOrders";
 import { Modal } from "@/components/ui/Modal";
 import { Order, Item } from "@/types";
+import { buildNewOrderMessage, sendLineGroupNotification } from "@/lib/lineNotify";
 
 const STATUS_MAP = {
   pending: { label: "รอยืนยัน", color: "border-amber-200 bg-amber-50 text-amber-700" },
@@ -57,11 +60,35 @@ export default function PurchaseHistoryPage() {
     try {
       await updateOrder(selectedOrder.id, {
         storeName: editedOrder.storeName,
+        storeLocation: editedOrder.storeLocation,
         items: editedOrder.items,
         location: editedOrder.location,
         contact: editedOrder.contact,
         note: editedOrder.note
       });
+
+      try {
+        const msg = buildNewOrderMessage({
+          requesterName: editedOrder.requesterName || buyer?.name || "",
+          storeName: editedOrder.storeName || "",
+          storeLocation: editedOrder.storeLocation || "",
+          location: editedOrder.location || "",
+          contact: editedOrder.contact || "",
+          note: editedOrder.note || "",
+          mapUrl: editedOrder.mapUrl || "",
+          itemCount: editedOrder.items.length,
+          items: editedOrder.items.map((item) => ({
+            name: item.name,
+            qty: Number(item.qty) || 0,
+            unit: item.unit,
+          })),
+          mode: "edited",
+        });
+        await sendLineGroupNotification("new_order", msg);
+      } catch (notifyErr) {
+        console.error("LINE notification error:", notifyErr);
+      }
+
       setSelectedOrder({ ...editedOrder });
       setIsEditing(false);
     } catch (err) {
@@ -314,6 +341,24 @@ export default function PurchaseHistoryPage() {
                   </div>
                 </div>
 
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">ที่อยู่ร้านค้า</label>
+                  <textarea
+                    className="w-full min-h-[84px] px-3 py-2.5 rounded-lg border-2 border-slate-100 bg-slate-50/50 text-sm font-bold text-slate-900 focus:border-blue-400 focus:bg-white outline-none transition-all"
+                    value={editedOrder.storeLocation || ""}
+                    onChange={(e) => setEditedOrder({ ...editedOrder, storeLocation: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">ที่อยู่จัดส่ง</label>
+                  <textarea
+                    className="w-full min-h-[84px] px-3 py-2.5 rounded-lg border-2 border-slate-100 bg-slate-50/50 text-sm font-bold text-slate-900 focus:border-blue-400 focus:bg-white outline-none transition-all"
+                    value={editedOrder.location || ""}
+                    onChange={(e) => setEditedOrder({ ...editedOrder, location: e.target.value })}
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">รายการสินค้า</label>
@@ -380,7 +425,101 @@ export default function PurchaseHistoryPage() {
                   </div>
                 </div>
 
-                <div className="divide-y divide-slate-100 border-t border-b border-slate-100">
+                <div className="space-y-3 rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
+                  <div className="space-y-2 rounded-xl border border-slate-100 bg-white px-3 py-3">
+                    <div className="flex items-start gap-2.5">
+                      <Store className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-black tracking-wide text-slate-400">ชื่อร้าน</div>
+                        <div className="text-[13px] font-bold leading-tight text-slate-900">
+                          {selectedOrder.storeName || "ไม่ระบุชื่อร้าน"}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-black tracking-wide text-slate-400">ที่อยู่ร้านค้า</div>
+                        <div className="text-[12px] leading-relaxed text-slate-900">
+                          {selectedOrder.storeLocation || "ไม่ระบุที่อยู่ร้านค้า"}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-black tracking-wide text-slate-400">ที่อยู่จัดส่ง</div>
+                        <div className="text-[12px] leading-relaxed text-slate-900">
+                          {selectedOrder.location || "ไม่ระบุที่อยู่จัดส่ง"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-100 bg-white px-3 py-3">
+                    <div className="mb-2 flex items-center gap-2 text-[10px] font-black tracking-wide text-slate-400">
+                      <Package className="h-3.5 w-3.5" />
+                      รายการ
+                    </div>
+                    <div className="space-y-2">
+                      {selectedOrder.items.map((item, i) => {
+                        const isUnavailable = item.status === "cancelled" || item.status === "out_of_stock";
+                        
+                        return (
+                          <div
+                            key={item.id || i}
+                            className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-2.5 py-2.5"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className={cn(
+                                "mb-0.5 truncate text-[13px] font-bold leading-tight text-slate-900",
+                                isUnavailable && "line-through text-slate-400 opacity-50"
+                              )}>
+                                {item.name}
+                              </div>
+                              <div className={cn(
+                                "inline-block rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] text-slate-600",
+                                isUnavailable && "text-slate-400 opacity-50"
+                              )}>
+                                {item.qty} {item.unit}
+                              </div>
+                            </div>
+                            <div className="shrink-0 ml-4">
+                              {item.status === "bought" ? (
+                                <div className="flex items-center gap-1.5 rounded-lg border border-emerald-100 bg-emerald-50 px-2 py-1 text-emerald-600">
+                                  <CheckCircle2 className="h-3.5 w-3.5" />
+                                  <span className="text-[10px] font-black tracking-tight">ซื้อแล้ว</span>
+                                </div>
+                              ) : isUnavailable ? (
+                                <div className="flex items-center gap-1.5 rounded-lg border border-red-50 bg-red-50 px-2 py-1 text-red-400">
+                                  <XCircle className="h-3.5 w-3.5" />
+                                  <span className="text-[10px] font-black tracking-tight">ไม่มี</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1.5 rounded-lg border border-amber-100 bg-amber-50 px-2 py-1 text-amber-600">
+                                  <Clock className="h-3.5 w-3.5" />
+                                  <span className="text-[10px] font-black tracking-tight">รอดำเนินการ</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="hidden flex items-center justify-between rounded-lg bg-slate-50 px-2.5 py-2">
+                      <span className="text-[12px] text-slate-900">
+                        จำนวนสินค้า
+                      </span>
+                      <span className="shrink-0 rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] text-slate-700">
+                        {selectedOrder.items.length} รายการ
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="hidden divide-y divide-slate-100 border-t border-b border-slate-100">
                   {selectedOrder.items.map((item, i) => {
                     const isUnavailable = item.status === "cancelled" || item.status === "out_of_stock";
                     

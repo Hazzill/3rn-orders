@@ -28,6 +28,7 @@ import { Order, Item } from "@/types";
 import {
   sendLineGroupNotification,
   buildCompletedOrderMessage,
+  buildNewOrderMessage,
 } from "@/lib/lineNotify";
 
 const STATUS_MAP = {
@@ -141,9 +142,35 @@ export default function OrderSupportPage() {
     try {
       await updateOrder(selectedOrder.id, {
         storeName: editedOrder.storeName,
+        storeLocation: editedOrder.storeLocation,
         items: editedOrder.items,
-        location: editedOrder.location
+        location: editedOrder.location,
+        contact: editedOrder.contact,
+        note: editedOrder.note,
       });
+
+      try {
+        const msg = buildNewOrderMessage({
+          requesterName: editedOrder.requesterName || "-",
+          storeName: editedOrder.storeName || "",
+          storeLocation: editedOrder.storeLocation || "",
+          location: editedOrder.location || "",
+          contact: editedOrder.contact || "",
+          note: editedOrder.note || "",
+          mapUrl: editedOrder.mapUrl || "",
+          itemCount: editedOrder.items.length,
+          items: editedOrder.items.map((item) => ({
+            name: item.name,
+            qty: Number(item.qty) || 0,
+            unit: item.unit,
+          })),
+          mode: "edited",
+        });
+        await sendLineGroupNotification("new_order", msg);
+      } catch (notifyErr) {
+        console.error("LINE notification error:", notifyErr);
+      }
+
       setSelectedOrder({ ...editedOrder });
       setIsEditing(false);
     } catch (err) {
@@ -407,13 +434,22 @@ export default function OrderSupportPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-sm  uppercase tracking-wider text-slate-400">สถานที่</label>
+                    <label className="text-sm  uppercase tracking-wider text-slate-400">สถานที่ส่ง</label>
                     <input
                       className="w-full h-10 px-3 rounded-lg border-2 border-slate-100 bg-slate-50/50 text-sm font-bold text-slate-900 focus:border-blue-400 focus:bg-white outline-none transition-all"
                       value={editedOrder.location}
                       onChange={(e) => setEditedOrder({ ...editedOrder, location: e.target.value })}
                     />
                   </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm  uppercase tracking-wider text-slate-400">สถานที่ร้าน</label>
+                  <textarea
+                    className="w-full min-h-[84px] px-3 py-2.5 rounded-lg border-2 border-slate-100 bg-slate-50/50 text-sm font-bold text-slate-900 focus:border-blue-400 focus:bg-white outline-none transition-all"
+                    value={editedOrder.storeLocation || ""}
+                    onChange={(e) => setEditedOrder({ ...editedOrder, storeLocation: e.target.value })}
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -466,10 +502,18 @@ export default function OrderSupportPage() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-3 gap-1.5 text-sm">
+                <div className="grid grid-cols-2 gap-1.5 text-sm">
                   <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                    <span className="text-slate-500 block mb-1  uppercase tracking-wider">สถานที่</span>
-                    <span className="font-bold text-slate-900 truncate block text-[11px]">{selectedOrder.location || "N/A"}</span>
+                    <span className="text-slate-500 block mb-1  uppercase tracking-wider">สถานที่ร้าน</span>
+                    <span className="font-bold text-slate-900 block text-[11px] leading-relaxed">
+                      {selectedOrder.storeLocation || "N/A"}
+                    </span>
+                  </div>
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <span className="text-slate-500 block mb-1  uppercase tracking-wider">สถานที่ส่ง</span>
+                    <span className="font-bold text-slate-900 block text-[11px] leading-relaxed">
+                      {selectedOrder.location || "N/A"}
+                    </span>
                   </div>
                   <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                     <span className="text-slate-500 block mb-1  uppercase tracking-wider">สั่งเมื่อ</span>

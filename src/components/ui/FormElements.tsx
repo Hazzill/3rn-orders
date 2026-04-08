@@ -22,7 +22,7 @@ export const Input = React.forwardRef<
   <input
     ref={ref}
     className={cn(
-      "h-11 w-full rounded-md border border-slate-300 bg-white px-3.5 text-sm font-medium text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10",
+      "h-11 w-full rounded-md border border-slate-300 bg-white px-3.5 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10",
       className,
     )}
     {...props}
@@ -38,7 +38,7 @@ export const Label = ({
 }) => (
   <label
     className={cn(
-      "field-label",
+      "block text-sm text-slate-700",
       className,
     )}
   >
@@ -52,7 +52,7 @@ export const Select = React.forwardRef<
   <select
     ref={ref}
     className={cn(
-      "h-11 w-full appearance-none rounded-md border border-slate-300 bg-white px-3.5 text-sm font-medium text-slate-900 outline-none transition-colors focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10",
+      "h-11 w-full appearance-none rounded-md border border-slate-300 bg-white px-3.5 text-sm text-slate-900 outline-none transition-colors focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10",
       className,
     )}
     {...props}

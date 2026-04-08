@@ -19,8 +19,9 @@ export function getStoreOrderSeed(store: NetworkStore) {
   return {
     storeId: store.id,
     storeName: store.name,
+    storeLocation: store.location || "",
     contact: store.phone || "",
-    location: store.location || "",
+    location: "",
+    mapUrl: store.mapUrl || "",
   };
 }
-

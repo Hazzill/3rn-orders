@@ -69,14 +69,25 @@ export function buildNewOrderMessage(data: {
   requesterName: string;
   storeName: string;
   itemCount: number;
+  storeLocation?: string;
   location?: string;
+  contact?: string;
   note?: string;
   mapUrl?: string;
   items?: { name: string; qty: number; unit: string }[];
+  mode?: "new" | "edited";
 }): any {
+  const footerContents: any[] = [];
+  const phoneUri = data.contact
+    ? `tel:${data.contact.replace(/[^\d+]/g, "")}`
+    : "";
+  const isEdited = data.mode === "edited";
+  const headingText = isEdited ? "แก้ไขใบสั่งซื้อ" : "คำสั่งซื้อใหม่";
+  const headingColor = isEdited ? "#D97706" : "#2563EB";
+
   const flex: any = {
     type: "flex",
-    altText: `แจ้งเตือนคำสั่งซื้อจาก: ${data.requesterName}`,
+    altText: `${headingText}: ${data.storeName || data.requesterName}`,
     contents: {
       type: "bubble",
       body: {
@@ -86,16 +97,16 @@ export function buildNewOrderMessage(data: {
         contents: [
           {
             type: "text",
-            text: "คำสั่งซื้อใหม่",
+            text: headingText,
             weight: "bold",
-            color: "#2563EB",
+            color: headingColor,
             size: "xs",
           },
           {
             type: "text",
             text: data.storeName || "ร้านค้า/คู่ค้า",
             weight: "bold",
-            size: "xxl",
+            size: "xl",
             margin: "md",
             wrap: true,
             color: "#0F172A",
@@ -125,8 +136,26 @@ export function buildNewOrderMessage(data: {
                 layout: "baseline",
                 spacing: "md",
                 contents: [
-                  { type: "text", text: "จุดรับของ", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
+                  { type: "text", text: "ที่อยู่ร้าน", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
+                  { type: "text", text: data.storeLocation || "-", color: "#1E293B", size: "sm", flex: 7, wrap: true }
+                ]
+              },
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "md",
+                contents: [
+                  { type: "text", text: "ที่อยู่จัดส่ง", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
                   { type: "text", text: data.location || "-", color: "#1E293B", size: "sm", flex: 7, wrap: true }
+                ]
+              },
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "md",
+                contents: [
+                  { type: "text", text: "เบอร์ติดต่อ", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
+                  { type: "text", text: data.contact || "-", color: "#1E293B", size: "sm", flex: 7, wrap: true }
                 ]
               }
             ]
@@ -135,10 +164,10 @@ export function buildNewOrderMessage(data: {
       },
       footer: {
         type: "box",
-        layout: "vertical",
+        layout: "horizontal",
         spacing: "sm",
         paddingAll: "lg",
-        contents: [] as any[]
+        contents: footerContents,
       },
     },
   };
@@ -155,7 +184,7 @@ export function buildNewOrderMessage(data: {
           type: "text",
           text: `รายการสินค้า (${data.items.length})`,
           size: "xs",
-          color: "#64748B",
+          color: "#2563EB",
           weight: "bold",
           margin: "none"
         },
@@ -165,7 +194,7 @@ export function buildNewOrderMessage(data: {
           margin: "sm",
           contents: [
             { type: "text", text: i.name, size: "xs", color: "#475569", wrap: true, flex: 4 },
-            { type: "text", text: String(i.qty), size: "xs", color: "#1E293B", weight: "bold", align: "end", flex: 1 },
+            { type: "text", text: String(i.qty), size: "sm", color: "#1E293B", weight: "bold", align: "end", flex: 1 },
             { type: "text", text: i.unit, size: "xs", color: "#64748B", align: "end", flex: 1 }
           ]
         }))
@@ -203,30 +232,42 @@ export function buildNewOrderMessage(data: {
   }
 
   if (data.mapUrl) {
-    flex.contents.footer.contents.push({
+    footerContents.push({
       type: "button",
       style: "primary",
       height: "sm",
       color: "#2563EB",
       action: {
         type: "uri",
-        label: "ดูแผนที่/ที่ตั้ง",
+        label: "ลิ้งที่อยู่",
         uri: data.mapUrl,
       },
     });
   }
 
-  flex.contents.footer.contents.push({
-    type: "button",
-    style: "link",
-    height: "sm",
-    color: "#64748B",
-    action: {
-      type: "uri",
-      label: "เปิดระบบจัดการ",
-      uri: `${window.location.origin}/order`
-    }
-  });
+  if (phoneUri) {
+    footerContents.unshift({
+      type: "button",
+      style: "secondary",
+      height: "sm",
+      action: {
+        type: "uri",
+        label: "โทร",
+        uri: phoneUri,
+      },
+    });
+  }
+
+  if (footerContents.length === 0) {
+    footerContents.push({
+      type: "text",
+      text: "ไม่มีข้อมูลติดต่อเพิ่มเติม",
+      size: "xs",
+      color: "#94A3B8",
+      align: "center",
+      wrap: true,
+    });
+  }
 
   return flex;
 }
@@ -270,7 +311,7 @@ export function buildCompletedOrderMessage(data: {
             type: "text",
             text: data.storeName || "ร้านค้า/คู่ค้า",
             weight: "bold",
-            size: "xxl",
+            size: "xl",
             margin: "md",
             wrap: true,
             color: "#0F172A",
@@ -291,7 +332,7 @@ export function buildCompletedOrderMessage(data: {
                 layout: "baseline",
                 spacing: "md",
                 contents: [
-                  { type: "text", text: "จุดรับของ", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
+                  { type: "text", text: "ที่อยู่ส่งของ", color: "#64748B", size: "xs", flex: 3, weight: "bold" },
                   { type: "text", text: data.location || "-", color: "#1E293B", size: "sm", flex: 7, wrap: true }
                 ]
               },

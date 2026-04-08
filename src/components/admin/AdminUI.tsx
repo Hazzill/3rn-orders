@@ -9,8 +9,8 @@ type Tone = "slate" | "blue" | "emerald" | "amber" | "red" | "purple";
 
 const toneStyles: Record<Tone, { icon: string; chip: string }> = {
   slate: {
-    icon: "border-slate-200 bg-slate-100 text-slate-700",
-    chip: "border-slate-300 bg-slate-100 text-slate-700",
+    icon: "border-slate-200 bg-slate-50 text-slate-700",
+    chip: "border-slate-200 bg-slate-50 text-slate-700",
   },
   blue: {
     icon: "border-blue-200 bg-blue-50 text-blue-700",
@@ -29,8 +29,8 @@ const toneStyles: Record<Tone, { icon: string; chip: string }> = {
     chip: "border-red-200 bg-red-50 text-red-700",
   },
   purple: {
-    icon: "border-purple-200 bg-purple-50 text-purple-700",
-    chip: "border-purple-200 bg-purple-50 text-purple-700",
+    icon: "border-violet-200 bg-violet-50 text-violet-700",
+    chip: "border-violet-200 bg-violet-50 text-violet-700",
   },
 };
 
@@ -41,7 +41,7 @@ export function AdminPage({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <div className={cn("admin-page", className)}>{children}</div>;
+  return <div className={cn("flex flex-col gap-6 pb-12", className)}>{children}</div>;
 }
 
 export function AdminHeader({
@@ -54,12 +54,12 @@ export function AdminHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="admin-page-header">
+    <div className="flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0 space-y-1">
-        <h1 className="admin-page-title">{title}</h1>
-        {subtitle ? <p className="admin-page-subtitle">{subtitle}</p> : null}
+        <h1 className="text-3xl text-slate-950">{title}</h1>
+        {subtitle ? <p className="text-sm text-slate-600 md:text-[15px]">{subtitle}</p> : null}
       </div>
-      {actions ? <div className="admin-toolbar">{actions}</div> : null}
+      {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
     </div>
   );
 }
@@ -70,7 +70,7 @@ export function AdminSearch({
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <div className={cn("admin-search", className)}>
+    <div className={cn("relative min-w-[17rem]", className)}>
       <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
       <Input {...props} className="pl-9" placeholder={placeholder} />
     </div>
@@ -95,7 +95,7 @@ export function AdminPrimaryButton({
       {...props}
       disabled={disabled || submitting}
       className={cn(
-        "h-10 rounded-lg border-slate-900 bg-slate-900 px-4 text-sm font-medium tracking-normal text-white hover:bg-slate-800 hover:text-white disabled:bg-slate-700 disabled:opacity-70",
+        "h-10 rounded-lg border-slate-900 bg-slate-900 px-4 text-sm text-white hover:bg-slate-800 hover:text-white disabled:bg-slate-700 disabled:opacity-70",
         className,
       )}
     >
@@ -123,7 +123,7 @@ export function AdminSecondaryButton({
       variant="secondary"
       disabled={disabled || submitting}
       className={cn(
-        "h-10 rounded-lg border-slate-300 px-4 text-sm font-medium tracking-normal text-slate-700 hover:bg-slate-50 disabled:opacity-50",
+        "h-10 rounded-lg border-slate-300 bg-white px-4 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50",
         className,
       )}
     >
@@ -144,7 +144,7 @@ export function AdminStatGrid({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <div className={cn("admin-stat-grid", className)}>{children}</div>;
+  return <div className={cn("grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4", className)}>{children}</div>;
 }
 
 export function AdminStatCard({
@@ -162,16 +162,16 @@ export function AdminStatCard({
 }) {
   const styles = toneStyles[tone as Tone] || toneStyles.slate;
   return (
-    <div className="admin-stat-card">
+    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
-          <p className="admin-stat-label">{label}</p>
-          <div className="admin-stat-value">{value}</div>
-          {detail ? <p className="admin-stat-detail">{detail}</p> : null}
+          <p className="text-sm text-slate-500">{label}</p>
+          <div className="text-3xl leading-none text-slate-950">{value}</div>
+          {detail ? <p className="text-sm text-slate-600">{detail}</p> : null}
         </div>
         <div
           className={cn(
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border",
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border",
             styles.icon,
           )}
         >
@@ -196,12 +196,12 @@ export function AdminPanel({
   className?: string;
 }) {
   return (
-    <section className={cn("admin-panel", className)}>
+    <section className={cn("overflow-hidden rounded-2xl border border-slate-200 bg-white", className)}>
       {title || subtitle || action ? (
-        <div className="admin-panel-header">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-slate-50 px-5 py-4">
           <div className="min-w-0 space-y-1">
-            {title ? <h2 className="admin-panel-title">{title}</h2> : null}
-            {subtitle ? <p className="admin-panel-subtitle">{subtitle}</p> : null}
+            {title ? <h2 className="text-base text-slate-950">{title}</h2> : null}
+            {subtitle ? <p className="text-sm text-slate-600">{subtitle}</p> : null}
           </div>
           {action}
         </div>
@@ -224,7 +224,7 @@ export function AdminStatusChip({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-medium",
+        "inline-flex items-center rounded-md border px-2.5 py-1 text-xs",
         styles.chip,
         className,
       )}
@@ -244,13 +244,13 @@ export function AdminEmptyState({
   description?: string;
 }) {
   return (
-    <div className="admin-empty-state">
-      <div className="admin-empty-icon">
+    <div className="flex min-h-[18rem] flex-col items-center justify-center gap-4 px-6 py-10 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500">
         <Icon className="h-6 w-6" />
       </div>
       <div className="space-y-1">
-        <div className="admin-empty-title">{title}</div>
-        {description ? <p className="admin-empty-description">{description}</p> : null}
+        <div className="text-base text-slate-950">{title}</div>
+        {description ? <p className="max-w-md text-sm text-slate-600">{description}</p> : null}
       </div>
     </div>
   );

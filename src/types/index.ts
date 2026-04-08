@@ -24,6 +24,7 @@ export interface Order {
   requesterName: string;
   requesterUsername?: string;
   storeName?: string;
+  storeLocation?: string;
   location?: string;
   mapUrl?: string;
   contact?: string;
@@ -60,4 +61,3 @@ export interface NetworkStore {
   createdAt?: any;
   updatedAt?: any;
 }
-

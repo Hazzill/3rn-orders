@@ -22,9 +22,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ghost: "border border-transparent bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900",
     };
     const sizes = {
-      sm: "h-9 px-3.5 text-xs rounded-md font-semibold tracking-[0.06em]",
-      md: "h-11 px-5 text-sm rounded-md font-semibold tracking-[0.04em]",
-      lg: "h-12 px-6 text-sm rounded-lg font-semibold tracking-[0.05em]",
+      sm: "h-9 px-3.5 text-xs rounded-md",
+      md: "h-11 px-5 text-sm rounded-md",
+      lg: "h-12 px-6 text-sm rounded-lg",
     };
     return (
       <button

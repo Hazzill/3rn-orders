@@ -74,15 +74,15 @@ export default function AdminDashboard() {
         }
       >
         <div className="overflow-x-auto">
-          <table className="admin-table">
-            <thead>
+          <table className="min-w-full border-collapse text-sm">
+            <thead className="bg-slate-50">
               <tr>
-                <th>รหัส</th>
-                <th>ผู้ขอซื้อ</th>
-                <th>ร้านค้า</th>
-                <th>รายละเอียด</th>
-                <th>สถานะ</th>
-                <th className="text-right">เวลา</th>
+                <th className="border-b border-slate-200 px-5 py-3 text-left text-xs font-medium uppercase tracking-[0.08em] text-slate-500">รหัส</th>
+                <th className="border-b border-slate-200 px-5 py-3 text-left text-xs font-medium uppercase tracking-[0.08em] text-slate-500">ผู้ขอซื้อ</th>
+                <th className="border-b border-slate-200 px-5 py-3 text-left text-xs font-medium uppercase tracking-[0.08em] text-slate-500">ร้านค้า</th>
+                <th className="border-b border-slate-200 px-5 py-3 text-left text-xs font-medium uppercase tracking-[0.08em] text-slate-500">รายละเอียด</th>
+                <th className="border-b border-slate-200 px-5 py-3 text-left text-xs font-medium uppercase tracking-[0.08em] text-slate-500">สถานะ</th>
+                <th className="border-b border-slate-200 px-5 py-3 text-right text-xs font-medium uppercase tracking-[0.08em] text-slate-500">เวลา</th>
               </tr>
             </thead>
             <tbody>
@@ -110,33 +110,35 @@ export default function AdminDashboard() {
                   const status = statusMap[order.status as keyof typeof statusMap] ?? statusMap.pending;
 
                   return (
-                    <tr key={order.id} className="hover:bg-slate-50">
-                      <td>
-                        <span className="font-mono text-sm text-slate-700">
+                    <tr key={order.id} className="transition-colors hover:bg-slate-50">
+                      <td className="border-b border-slate-100 px-5 py-4 align-middle">
+                        <span className="font-mono text-sm font-medium text-slate-700">
                           #{order.id.slice(-6).toUpperCase()}
                         </span>
                       </td>
-                      <td>
+                      <td className="border-b border-slate-100 px-5 py-4 align-middle">
                         <div className="space-y-1">
-                          <div className="font-medium text-slate-900">{order.requesterName}</div>
+                          <div className="text-sm font-medium text-slate-950">{order.requesterName}</div>
                           <div className="text-xs text-slate-500">ผู้ขอซื้อ</div>
                         </div>
                       </td>
-                      <td className="text-slate-700">{order.storeName || "-"}</td>
-                      <td>
+                      <td className="border-b border-slate-100 px-5 py-4 align-middle text-sm text-slate-700">
+                        {order.storeName || "-"}
+                      </td>
+                      <td className="border-b border-slate-100 px-5 py-4 align-middle">
                         <div className="space-y-1">
-                          <div className="text-sm text-slate-700">{order.items.length} รายการ</div>
+                          <div className="text-sm font-medium text-slate-700">{order.items.length} รายการ</div>
                           <div className="max-w-[240px] truncate text-xs text-slate-500">
                             {order.items.map((item) => item.name).join(", ")}
                           </div>
                         </div>
                       </td>
-                      <td>
+                      <td className="border-b border-slate-100 px-5 py-4 align-middle">
                         <AdminStatusChip label={status.label} tone={status.tone} />
                       </td>
-                      <td className="text-right">
+                      <td className="border-b border-slate-100 px-5 py-4 text-right align-middle">
                         <div className="space-y-1">
-                          <div className="text-sm text-slate-900">
+                          <div className="text-sm font-medium text-slate-950">
                             {order.createdAt ? format(order.createdAt.toDate(), "HH:mm", { locale: th }) : "-"}
                           </div>
                           <div className="text-xs text-slate-500">

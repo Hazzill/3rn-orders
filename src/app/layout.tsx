@@ -1,13 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Sarabun } from "next/font/google";
 import "./globals.css";
 import { LiffProvider } from "@/lib/liff";
 import { BuyerProvider } from "@/context/BuyerContext";
-
-const sarabun = Sarabun({
-  subsets: ["thai", "latin"],
-  weight: ["400", "500", "600", "700"],
-});
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -27,7 +21,7 @@ export default function RootLayout({
   const liffId = process.env.NEXT_PUBLIC_LIFF_ID || "";
   return (
     <html lang="en">
-      <body className={`${sarabun.className} text-gray-900`}>
+      <body className="text-gray-900">
         <div className="app-shell min-h-screen">
           <LiffProvider liffId={liffId}>
             <BuyerProvider>
